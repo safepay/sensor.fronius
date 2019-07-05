@@ -18,65 +18,6 @@ from homeassistant.util import Throttle
 _RESOURCE = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi'
 _LOGGER = logging.getLogger(__name__)
 
-
-
-
-_FRONIUSDATA = """
-{
-	"Data": {
-		"DAY_ENERGY": {
-			"Value": 8000,
-			"Unit": "Wh"
-		},
-		"FAC": {
-			"Value": 50,
-			"Unit": "Hz"
-		},
-		"IAC": {
-			"Value": 14.54,
-			"Unit": "A"
-		},
-		"IDC": {
-			"Value": 8.2,
-			"Unit": "A"
-		},
-		"PAC": {
-			"Value": 3373,
-			"Unit": "W"
-		},
-		"SAC": {
-			"Value": 3413,
-			"Unit": "VA"
-		},
-		"TOTAL_ENERGY": {
-			"Value": 45000,
-			"Unit": "Wh"
-		},
-		"UAC": {
-			"Value": 232,
-			"Unit": "V"
-		},
-		"UDC": {
-			"Value": 426,
-			"Unit": "V"
-		},
-		"YEAR_ENERGY": {
-			"Value": 44000,
-			"Unit": "Wh"
-		},
-		"DeviceStatus": {
-			"StatusCode": 7,
-			"MgmtTimerRemainingTime": -1,
-			"ErrorCode": 0,
-			"LEDColor": 2,
-			"LEDState": 0,
-			"StateToReset": false
-		}
-	}
-}
-"""
-
-
 ATTRIBUTION = "Fronius Inverter Data"
 
 CONF_IP_ADDRESS = 'ip_address'
@@ -231,8 +172,8 @@ class FroniusData:
         ]
         
         try:
-            #result = requests.get(self._build_url(), params=URLParams, timeout=10).json()
-            result = json.loads(_FRONIUSDATA)
+            result = requests.get(self._build_url(), params=URLParams, timeout=10).json()
+            #result = json.loads(_FRONIUSDATA)
             self._data = result['Data']
             return
         except ValueError as err:
