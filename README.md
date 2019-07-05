@@ -8,7 +8,8 @@ Currently only handles single devices.
 The URL called is http://ip_address/GetInverterRealtimeData.cgi?Scope=Device&DeviceId=0&DataCollection=CommonInverterData
 
 ## Installation
-Copy the files (except the README) into your custom_components directory in the config directory of Home Assistant
+Copy all the files (except the README) into a fronius folder in your custom_components directory in the config directory of Home Assistant.
+E.g. ../config/custom_components/fronius/sensor.py
 
 ## Configuration
 ```
