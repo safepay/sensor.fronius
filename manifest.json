@@ -1,0 +1,8 @@
+{
+  "domain": "fronius",
+  "name": "Fronius",
+  "documentation": "https://github.com/safepay/Home-Assistant-Fronius/blob/master/README.md",
+  "dependencies": [],
+  "codeowners": ["@safepay"],
+  "requirements": []
+}
