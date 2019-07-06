@@ -36,10 +36,10 @@ sensor:
 ```
 ### CONFIGURATION VARIABLES
 #### ip_address
-(string)(Required)The local IP address of your Fronus Inverter.
+(string)(Required)The local IP address of your Fronius Inverter.
 
 #### device
-(string)(Optional)The Device ID of your Fronus Inverter. Default: 0
+(string)(Optional)The Device ID of your Fronius Inverter. Default: 0
 
 #### monitored_conditions
 (list)(Optional)The list of conditions to monitor. Default - all conditions are monitored.
