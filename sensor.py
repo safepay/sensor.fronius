@@ -88,7 +88,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 class FroniusSensor(Entity):
     """Implementation of the Fronius inverter sensor."""
 
-    def __init__(self, inverter_data, name, sensor_type, device):
+    def __init__(self, inverter_data, name, sensor_type, scope, device):
         """Initialize the sensor."""
         self._client = name
         self._json_key = SENSOR_TYPES[sensor_type][0]
