@@ -21,6 +21,7 @@ sensor:
 
 ```
 # Example configuration.yaml entry where you can specify the sensors you want:
+sensor:
   - platform: fronius
     ip_address: LOCAL_IP_FOR_FRONIUS
     monitored_conditions:
