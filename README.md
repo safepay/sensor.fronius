@@ -41,6 +41,9 @@ sensor:
 #### ip_address
 (string)(Required)The local IP address of your Fronius Inverter.
 
+#### name
+(string)(Optional)The preferred name of your Fronius Inverter. Default: "Fronius"
+
 #### device
 (string)(Optional)The Device ID of your Fronius Inverter. Default: 0
 
