@@ -15,17 +15,19 @@ from homeassistant.const import (
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 
-_RESOURCE = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi'
+_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi'
 _LOGGER = logging.getLogger(__name__)
 
 ATTRIBUTION = "Fronius Inverter Data"
 
+CONF_NAME = 'name'
 CONF_IP_ADDRESS = 'ip_address'
 CONF_SCOPE = 'scope'
 CONF_DEVICE = 'device'
 CONF_DATA_COLLECTION = 'data_collection'
 
 SCOPE_TYPES = ['device', 'system']
+DATA_COLLECTION_TYPES = ['CumulationInverterData', 'CommonInverterData', '3PInverterData', 'MinMaxInverterData']
 
 DEFAULT_SCOPE = 'device'
 DEFAULT_DEVICE = '0'
@@ -52,7 +54,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
         vol.In(SCOPE_TYPES),
     vol.Optional(CONF_DEVICE, default=DEFAULT_DEVICE): cv.string,
     vol.Optional(CONF_NAME, default='Fronius'): cv.string,
-    vol.Optional(CONF_DATA_COLLECTION, default=DEFAULT_DATA_COLLECTION): cv.string,
+    vol.Optional(CONF_DATA_COLLECTION, default=DEFAULT_DATA_COLLECTION):
+        vol.In(DATA_COLLECTION_TYPES),
     vol.Required(CONF_MONITORED_CONDITIONS, default=list(SENSOR_TYPES)):
         vol.All(cv.ensure_list, [vol.In(SENSOR_TYPES)]),
 })
@@ -101,7 +104,7 @@ class FroniusSensor(Entity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return '{} {} {}'.format(self._client, self._name, self._device)
+        return '{} {}'.format(self._client, self._name)
 
     @property
     def state(self):
@@ -150,7 +153,7 @@ class FroniusData:
 
     def _build_url(self):
         """Build the URL for the requests."""
-        url = _RESOURCE.format(self._ip_address)
+        url = _INVERTERRT.format(self._ip_address)
         _LOGGER.debug("Fronius URL: %s", url)
         return url
 
