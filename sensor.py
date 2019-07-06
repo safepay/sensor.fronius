@@ -44,7 +44,6 @@ SENSOR_TYPES = {
     'day_energy': ['DAY_ENERGY', 'Day Energy', 'kWh', 'mdi:solar-power'],
     'year_energy': ['YEAR_ENERGY', 'Year Energy', 'kWh', 'mdi:solar-power'],
     'total_energy': ['TOTAL_ENERGY', 'Total Energy', 'kWh', 'mdi:solar-power'],
-    'device_status': ['DeviceStatus', 'Device Status', None, 'mdi:solar-power']
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -112,7 +111,7 @@ class FroniusSensor(Entity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
-        return self._data.latest_data[self._json_key].get("Unit")
+        return self._unit
 
     @property
     def device_state_attributes(self):
