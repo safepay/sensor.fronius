@@ -16,6 +16,7 @@ E.g. ../config/custom_components/fronius/sensor.py
 # Example configuration.yaml entry
 sensor:
   - platform: fronius
+    ip_address: LOCAL_IP_FOR_FRONIUS
 ```
 
 ```
