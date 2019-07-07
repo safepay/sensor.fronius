@@ -174,9 +174,15 @@ class FroniusData:
         ]
         
         try:
-            result = requests.get(self._build_url(), params=URLParams, timeout=10).json()
+            #result = requests.get(self._build_url(), params=URLParams, timeout=10).json()
+            result = requests.get('https://tiny-jasper-1.glitch.me/Data', timeout=10).json()
+
+            _LOGGER.debug("Fronius URL: %s", self._build_url())
+
+
             #result = json.loads(_FRONIUSDATA)
-            self._data = result['Data']
+            #self._data = result['Data']
+            self._data = result
             return
         except ValueError as err:
             _LOGGER.error("*** Error getting Fronius data")
