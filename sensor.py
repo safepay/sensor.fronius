@@ -136,9 +136,9 @@ class FroniusSensor(Entity):
 
         # Read data
         if self._unit == "kWh":
-            self._state = self._data.latest_data[self._json_key].get("Value") / 1000
+            self._state = round(self._data.latest_data[self._json_key].get("Value") / 1000, 3)
         else:
-            self._state = self._data.latest_data[self._json_key].get("Value")
+            self._state = round(self._data.latest_data[self._json_key].get("Value"), 3)
 
 
 class FroniusData:
@@ -174,8 +174,9 @@ class FroniusData:
         ]
 
         try:
-            result = requests.get(self._build_url(), params=URLParams, timeout=10).json()
-            self._data = result['Data']
+            #result = requests.get('https://tiny-jasper-1.glitch.me/test', params=URLParams, timeout=10).json()
+            #result = requests.get(self._build_url(), params=URLParams, timeout=10).json()
+            self._data = result['Body']['Data']
             return
         except ValueError as err:
             _LOGGER.error("*** Error getting Fronius data")
