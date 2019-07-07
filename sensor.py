@@ -136,9 +136,9 @@ class FroniusSensor(Entity):
 
         # Read data
         if self._unit == "kWh":
-            self._state = round(self._data.latest_data[self._json_key].get("Value") / 1000, 3)
+            self._state = self._data.latest_data[self._json_key].get("Value") / 1000
         else:
-            self._state = round(self._data.latest_data[self._json_key].get("Value"), 3)
+            self._state = self._data.latest_data[self._json_key].get("Value")
 
 
 class FroniusData:
