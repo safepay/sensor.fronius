@@ -3,11 +3,11 @@ A Fronius Inverter component/integration for Home Assistant
 
 Returns "Common Inverter Data" from Fronius inverters
 
-Currently only handles single devices.
+Currently only handles single Inverter devices.
 
 The Default URL called is http://ip_address/GetInverterRealtimeData.cgi?Scope=Device&DeviceId=1&DataCollection=CommonInverterData
 
-If your device has a different id than "1" then pass your device ID as "device" as per the configuration.
+If your device has a different id than "1" then pass your device ID as "device_id" as per the configuration.
 
 ## Installation
 Copy all the files (except the README) into a fronius folder in your custom_components directory in the config directory of Home Assistant.
@@ -26,7 +26,7 @@ sensor:
 sensor:
   - platform: fronius
     ip_address: LOCAL_IP_FOR_FRONIUS
-    device: 1
+    device_id: 1
     monitored_conditions:
       - ac_power
       - ac_current
