@@ -174,8 +174,7 @@ class FroniusData:
         ]
 
         try:
-            #result = requests.get('https://tiny-jasper-1.glitch.me/test', params=URLParams, timeout=10).json()
-            #result = requests.get(self._build_url(), params=URLParams, timeout=10).json()
+            result = requests.get(self._build_url(), params=URLParams, timeout=10).json()
             self._data = result['Body']['Data']
             return
         except ValueError as err:
