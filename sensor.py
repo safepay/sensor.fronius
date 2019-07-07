@@ -172,10 +172,9 @@ class FroniusData:
             ("DeviceId", self._device_id),
             ("DataCollection", self._data_collection)
         ]
-        
+
         try:
             result = requests.get(self._build_url(), params=URLParams, timeout=10).json()
-            #result = json.loads(_FRONIUSDATA)
             self._data = result['Data']
             return
         except ValueError as err:
