@@ -174,8 +174,10 @@ class FroniusData:
         ]
 
         try:
-            result = requests.get(self._build_url(), params=URLParams, timeout=10).json()
-            self._data = result['Body']['Data']
+
+            headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+            result = requests.get(self._build_url(), params=URLParams, headers=headers, timeout=10).json()
+            self._data = result['Data']
             return
         except ValueError as err:
             _LOGGER.error("*** Error getting Fronius data")
