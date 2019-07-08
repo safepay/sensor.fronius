@@ -179,7 +179,7 @@ class FroniusData:
             self._data = result['Body']['Data']
 
             _LOGGER.debug("!!!!!!!!! Fronius DE: %s", result['Body']['Data']['DAY_ENERGY']['Value'])
-            _LOGGER.debug("!!!!!!!!! Fronius TS: %s", result['Head']['Status']['Timestamp']])
+            _LOGGER.debug("!!!!!!!!! Fronius TS: %s", result['Head']['Status']['Timestamp'])
 
 
             return
