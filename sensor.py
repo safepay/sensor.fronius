@@ -45,7 +45,7 @@ SENSOR_TYPES = {
     'dc_voltage': ['UDC', 'DC Voltage', 'V', 'mdi:solar-power'],
     'day_energy': ['DAY_ENERGY', 'Day Energy', 'kWh', 'mdi:solar-power'],
     'year_energy': ['YEAR_ENERGY', 'Year Energy', 'kWh', 'mdi:solar-power'],
-    'total_energy': ['TOTAL_ENERGY', 'Total Energy', 'kWh', 'mdi:solar-power'],
+    'total_energy': ['TOTAL_ENERGY', 'Total Energy', 'kWh', 'mdi:solar-power']
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -136,9 +136,9 @@ class FroniusSensor(Entity):
 
         # Read data
         if self._unit == "kWh":
-            self._state = self._data.latest_data[self._json_key].get("Value") / 1000
+            self._state = round(self._data.latest_data[self._json_key].get("Value") / 1000, 1)
         else:
-            self._state = self._data.latest_data[self._json_key].get("Value")
+            self._state = round(self._data.latest_data[self._json_key].get("Value"), 1)
 
 
 class FroniusData:
@@ -176,6 +176,11 @@ class FroniusData:
         try:
             result = requests.get(self._build_url(), params=URLParams, timeout=10).json()
             self._data = result['Body']['Data']
+
+            _LOGGER.debug("!!!!!!!!! Fronius DE: %s", result['Body']['Data']['DAY_ENERGY']['Value'])
+            _LOGGER.debug("!!!!!!!!! Fronius TS: %s", result['Head']['Status']['Timestamp']])
+
+
             return
         except ValueError as err:
             _LOGGER.error("*** Error getting Fronius data")
