@@ -134,6 +134,9 @@ class FroniusSensor(Entity):
             _LOGGER.info("Didn't receive data from the inverter")
             return
 
+        _LOGGER.debug("!!!!!!!!!!!!!!!!!!!!!!!!!! JSON KEY: %s", self._json_key)
+
+
         # Read data
         if self._unit == "kWh":
             self._state = round(self._data.latest_data[self._json_key]["Value"] / 1000, 1)
@@ -175,8 +178,12 @@ class FroniusData:
 
         try:
 
-            headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
-            result = requests.get(self._build_url(), params=URLParams, headers=headers, timeout=10).json()
+            result = requests.get("https://my-json-server.typicode.com/safepay/json/test", params=URLParams, timeout=10).json()
+            #result = requests.get(self._build_url(), params=URLParams, timeout=10).json()
+
+            _LOGGER.debug("!!!!!!!!!!!!!!!!!!!!!!!!!! HEADER TIMESTAMP: %s", result['Head']['Timestamp'])
+
+
             self._data = result['Body']['Data']
             return
         except ValueError as err:
