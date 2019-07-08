@@ -177,7 +177,7 @@ class FroniusData:
 
             headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
             result = requests.get(self._build_url(), params=URLParams, headers=headers, timeout=10).json()
-            self._data = result['Data']
+            self._data = result['Body']['Data']
             return
         except ValueError as err:
             _LOGGER.error("*** Error getting Fronius data")
