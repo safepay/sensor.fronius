@@ -187,5 +187,5 @@ class FroniusData:
 
             self._data = result['Body']['Data']
             return
-        except ValueError as err:
+        except KeyError:
             _LOGGER.error("*** Error getting Fronius data")
