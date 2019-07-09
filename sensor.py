@@ -178,8 +178,8 @@ class FroniusData:
 
         try:
 
-            result = requests.get("https://my-json-server.typicode.com/safepay/json/test", params=URLParams, timeout=10).json()
-            #result = requests.get(self._build_url(), params=URLParams, timeout=10).json()
+            #result = requests.get("https://my-json-server.typicode.com/safepay/json/test", params=URLParams, timeout=10).json()
+            result = requests.get(self._build_url(), params=URLParams, timeout=10).json()
 
             _LOGGER.debug("!!!!!!!!!!!!!!!!!!!!!!!!!! HEADER TIMESTAMP: %s", result['Head']['Timestamp'])
 
