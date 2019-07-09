@@ -22,16 +22,9 @@ ATTRIBUTION = "Fronius Inverter Data"
 
 CONF_NAME = 'name'
 CONF_IP_ADDRESS = 'ip_address'
-CONF_SCOPE = 'scope'
 CONF_DEVICE_ID = 'device_id'
-CONF_DATA_COLLECTION = 'data_collection'
 
-SCOPE_TYPES = ['device', 'system']
-DATA_COLLECTION_TYPES = ['CumulationInverterData', 'CommonInverterData', '3PInverterData', 'MinMaxInverterData']
-
-DEFAULT_SCOPE = 'device'
 DEFAULT_DEVICE_ID = '1'
-DEFAULT_DATA_COLLECTION = 'CommonInverterData'
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 
@@ -50,12 +43,8 @@ SENSOR_TYPES = {
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_IP_ADDRESS): cv.string,
-    vol.Optional(CONF_SCOPE, default=DEFAULT_SCOPE):
-        vol.In(SCOPE_TYPES),
     vol.Optional(CONF_DEVICE_ID, default=DEFAULT_DEVICE_ID): cv.string,
     vol.Optional(CONF_NAME, default='Fronius'): cv.string,
-    vol.Optional(CONF_DATA_COLLECTION, default=DEFAULT_DATA_COLLECTION):
-        vol.In(DATA_COLLECTION_TYPES),
     vol.Required(CONF_MONITORED_CONDITIONS, default=list(SENSOR_TYPES)):
         vol.All(cv.ensure_list, [vol.In(SENSOR_TYPES)]),
 })
@@ -65,12 +54,10 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     """Set up the Fronius inverter sensor."""
 
     ip_address = config[CONF_IP_ADDRESS]
-    scope = config.get(CONF_SCOPE)
     device_id = config.get(CONF_DEVICE_ID)
-    data_collection = config.get(CONF_DATA_COLLECTION)
     name = config.get(CONF_NAME)
 
-    fronius_data = FroniusData(ip_address, scope, device_id, data_collection)
+    fronius_data = FroniusData(ip_address, device_id)
 
     try:
         fronius_data.update()
@@ -80,7 +67,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 
     dev = []
     for variable in config[CONF_MONITORED_CONDITIONS]:
-        dev.append(FroniusSensor(fronius_data, name, variable, scope, device_id))
+        dev.append(FroniusSensor(fronius_data, name, variable, device_id))
 
     add_entities(dev, True)
 
@@ -88,14 +75,13 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 class FroniusSensor(Entity):
     """Implementation of the Fronius inverter sensor."""
 
-    def __init__(self, inverter_data, name, sensor_type, scope, device_id):
+    def __init__(self, inverter_data, name, sensor_type, device_id):
         """Initialize the sensor."""
         self._client = name
         self._json_key = SENSOR_TYPES[sensor_type][0]
         self._name = SENSOR_TYPES[sensor_type][1]
         self._type = sensor_type
         self._state = None
-        self._scope = scope
         self._device_id = device_id
         self._unit = SENSOR_TYPES[sensor_type][2]
         self._data = inverter_data
@@ -147,12 +133,10 @@ class FroniusSensor(Entity):
 class FroniusData:
     """Handle Fronius API object and limit updates."""
 
-    def __init__(self, ip_address, scope, device_id, data_collection):
+    def __init__(self, ip_address, device_id):
         """Initialize the data object."""
         self._ip_address = ip_address
-        self._scope = scope
         self._device_id = device_id
-        self._data_collection = data_collection
 
     def _build_url(self, self._device_id):
         """Build the URL for the requests."""
@@ -170,17 +154,10 @@ class FroniusData:
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Get the latest data from inverter."""
-        URLParams = [
-            ("Scope", self._scope),
-            ("DeviceId", self._device_id),
-            ("DataCollection", self._data_collection)
-        ]
-
         try:
 
             #result = requests.get("https://my-json-server.typicode.com/safepay/json/test", params=URLParams, timeout=10).json()
             result = requests.get(self._build_url(), timeout=10).json()
-            #result = requests.get(self._build_url(), params=URLParams, timeout=10).json()
 
             _LOGGER.info("!!!!!!!!!!!!!!!!!!!!!!!!!! HEADER TIMESTAMP: %s", result['Head']['Timestamp'])
 
