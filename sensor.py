@@ -15,7 +15,7 @@ from homeassistant.const import (
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 
-_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope=system&DeviceId={}&DataCollection=CommonInverterData'
+_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope=device&DeviceId={}&DataCollection=CommonInverterData'
 _LOGGER = logging.getLogger(__name__)
 
 ATTRIBUTION = "Fronius Inverter Data"
@@ -122,9 +122,9 @@ class FroniusSensor(Entity):
 
         # Read data
         if self._unit == "kWh":
-            self._state = round(self._data.latest_data[self._json_key]["Value"] / 1000, 1)
+            self._state = round(self._data.latest_data[self._json_key]['Value'] / 1000, 1)
         else:
-            self._state = round(self._data.latest_data[self._json_key]["Value"], 1)
+            self._state = round(self._data.latest_data[self._json_key]['Value'], 1)
 
 
 class FroniusData:
@@ -152,12 +152,7 @@ class FroniusData:
     def update(self):
         """Get the latest data from inverter."""
         try:
-
-            #result = requests.get("https://my-json-server.typicode.com/safepay/json/test", timeout=10).json()
             result = requests.get(self._build_url(), timeout=10).json()
-
-            _LOGGER.info("!!!!!!!!!!!!!!!!!!!!!!!!!! HEADER TIMESTAMP: %s", result['Head']['Timestamp'])
-
 
             self._data = result['Body']['Data']
             return
