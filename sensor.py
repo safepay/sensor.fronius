@@ -15,7 +15,7 @@ from homeassistant.const import (
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 
-_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi'
+_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope=system&DeviceId=1&DataCollection=CommonInverterData'
 _LOGGER = logging.getLogger(__name__)
 
 ATTRIBUTION = "Fronius Inverter Data"
@@ -134,7 +134,7 @@ class FroniusSensor(Entity):
             _LOGGER.info("Didn't receive data from the inverter")
             return
 
-        _LOGGER.debug("!!!!!!!!!!!!!!!!!!!!!!!!!! JSON KEY: %s", self._json_key)
+        _LOGGER.info("!!!!!!!!!!!!!!!!!!!!!!!!!! JSON KEY: %s", self._json_key)
 
 
         # Read data
@@ -157,7 +157,7 @@ class FroniusData:
     def _build_url(self):
         """Build the URL for the requests."""
         url = _INVERTERRT.format(self._ip_address)
-        _LOGGER.debug("Fronius URL: %s", url)
+        _LOGGER.info("Fronius URL: %s", url)
         return url
 
     @property
@@ -179,9 +179,10 @@ class FroniusData:
         try:
 
             #result = requests.get("https://my-json-server.typicode.com/safepay/json/test", params=URLParams, timeout=10).json()
-            result = requests.get(self._build_url(), params=URLParams, timeout=10).json()
+            result = requests.get(self._build_url(), timeout=10).json()
+            #result = requests.get(self._build_url(), params=URLParams, timeout=10).json()
 
-            _LOGGER.debug("!!!!!!!!!!!!!!!!!!!!!!!!!! HEADER TIMESTAMP: %s", result['Head']['Timestamp'])
+            _LOGGER.info("!!!!!!!!!!!!!!!!!!!!!!!!!! HEADER TIMESTAMP: %s", result['Head']['Timestamp'])
 
 
             self._data = result['Body']['Data']
