@@ -15,7 +15,7 @@ from homeassistant.const import (
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 
-_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope=system&DeviceId=1&DataCollection=CommonInverterData'
+_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope=system&DeviceId={}&DataCollection=CommonInverterData'
 _LOGGER = logging.getLogger(__name__)
 
 ATTRIBUTION = "Fronius Inverter Data"
@@ -154,9 +154,9 @@ class FroniusData:
         self._device_id = device_id
         self._data_collection = data_collection
 
-    def _build_url(self):
+    def _build_url(self, self._device_id):
         """Build the URL for the requests."""
-        url = _INVERTERRT.format(self._ip_address)
+        url = _INVERTERRT.format(self._ip_address, self._device_id)
         _LOGGER.info("Fronius URL: %s", url)
         return url
 
