@@ -120,9 +120,6 @@ class FroniusSensor(Entity):
             _LOGGER.info("Didn't receive data from the inverter")
             return
 
-        _LOGGER.info("!!!!!!!!!!!!!!!!!!!!!!!!!! JSON KEY: %s", self._json_key)
-
-
         # Read data
         if self._unit == "kWh":
             self._state = round(self._data.latest_data[self._json_key]["Value"] / 1000, 1)
