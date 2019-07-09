@@ -185,7 +185,7 @@ class FroniusData:
             _LOGGER.info("!!!!!!!!!!!!!!!!!!!!!!!!!! HEADER TIMESTAMP: %s", result['Head']['Timestamp'])
 
 
-            self._data = result['Body']['Data']
+            self._data = result['Data']
             return
         except ValueError as err:
             _LOGGER.error("*** Error getting Fronius data")
