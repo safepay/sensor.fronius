@@ -138,7 +138,7 @@ class FroniusData:
         self._ip_address = ip_address
         self._device_id = device_id
 
-    def _build_url(self, self._device_id):
+    def _build_url(self):
         """Build the URL for the requests."""
         url = _INVERTERRT.format(self._ip_address, self._device_id)
         _LOGGER.info("Fronius URL: %s", url)
@@ -156,7 +156,7 @@ class FroniusData:
         """Get the latest data from inverter."""
         try:
 
-            #result = requests.get("https://my-json-server.typicode.com/safepay/json/test", params=URLParams, timeout=10).json()
+            #result = requests.get("https://my-json-server.typicode.com/safepay/json/test", timeout=10).json()
             result = requests.get(self._build_url(), timeout=10).json()
 
             _LOGGER.info("!!!!!!!!!!!!!!!!!!!!!!!!!! HEADER TIMESTAMP: %s", result['Head']['Timestamp'])
