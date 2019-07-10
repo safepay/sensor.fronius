@@ -27,6 +27,7 @@ https://raw.githubusercontent.com/safepay/Home-Assistant-Fronius/master/sensor.p
 
 If you would like to help with development, there is a test verion that can add data from multiple inverters here:
 https://github.com/safepay/JSON/blob/master/sensor.py
+
 Just replace the sensor.py in this reppository with this alternate version.
 Set "scope: System" in your config to activate.
 
