@@ -1,1 +1,0 @@
-"""Fronius Inverter Component"""
