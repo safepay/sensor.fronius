@@ -9,7 +9,7 @@ The Default URL called is http://ip_address/GetInverterRealtimeData.cgi?Scope=De
 If your device has a different id than "1" then pass your device ID as "device_id" as per the configuration.
 
 ## Installation
-Copy all the files (except the README) into a fronius folder in your custom_components directory in the config directory of Home Assistant.
+Copy the fronius folder in the custom_components directory into your own custom_components directory in your config directory of Home Assistant.
 
 E.g.:
 ```
@@ -19,11 +19,6 @@ E.g.:
 ```
 
 Be sure to pull raw data from GitHub:
-```
-https://raw.githubusercontent.com/safepay/Home-Assistant-Fronius/master/__init__.py
-https://raw.githubusercontent.com/safepay/Home-Assistant-Fronius/master/manifest.json
-https://raw.githubusercontent.com/safepay/Home-Assistant-Fronius/master/sensor.py
-```
 
 If you would like to help with development, there is a test verion that can add data from multiple inverters here:
 https://github.com/safepay/JSON/blob/master/sensor.py
