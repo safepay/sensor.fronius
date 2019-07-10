@@ -1,1 +1,1 @@
-"""The Fronius Component."""
+"""Fronius Inverter Component"""
