@@ -1,4 +1,4 @@
-# Fronius Inverter Custom Component for Home Assistant
+# Fronius Inverter Sensor for Home Assistant
 
 Returns "Common Inverter Data" from Fronius inverters.
 
