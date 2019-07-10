@@ -11,14 +11,21 @@ If your device has a different id than "1" then pass your device ID as "device_i
 
 ## Installation
 Copy all the files (except the README) into a fronius folder in your custom_components directory in the config directory of Home Assistant.
+
 E.g.:
+
 ../config/custom_components/fronius/__init__.py
+
 ../config/custom_components/fronius/manifest.json
+
 ../config/custom_components/fronius/sensor.py
 
 Be sure to pull raw data from GitHub:
+
 https://raw.githubusercontent.com/safepay/Home-Assistant-Fronius/master/__init__.py
+
 https://raw.githubusercontent.com/safepay/Home-Assistant-Fronius/master/manifest.json
+
 https://raw.githubusercontent.com/safepay/Home-Assistant-Fronius/master/sensor.py
 
 ## Configuration
