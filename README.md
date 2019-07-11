@@ -2,8 +2,6 @@
 
 Returns "Common Inverter Data" from Fronius inverters.
 
-Currently only handles single Inverter devices.
-
 The Default URL called is http://ip_address/GetInverterRealtimeData.cgi?Scope=Device&DeviceId=1&DataCollection=CommonInverterData
 
 If your device has a different id than "1" then pass your device ID as "device_id" as per the configuration.
@@ -20,11 +18,7 @@ E.g.:
 
 Be sure to pull raw data from GitHub:
 
-If you would like to help with development, there is a test verion that can add data from multiple inverters here:
-https://github.com/safepay/JSON/blob/master/sensor.py
-
-Just replace the sensor.py in this reppository with this alternate version.
-Set "scope: System" in your config to activate.
+If you have multiple inverters, set scope: System as per the configuration below to return combined values for available sensors.
 
 ## Configuration
 ```
@@ -60,6 +54,10 @@ sensor:
 
 #### device
 (string)(Optional)The Device ID of your Fronius Inverter. Default: 1
+
+#### scope
+(string)(Optional)Set to "System" if you have multiple inverters. This will return ac_power and daily, year and total energy only.
+Default: Device
 
 #### monitored_conditions
 (list)(Optional)The list of conditions to monitor. Default - all conditions are monitored.
