@@ -6,7 +6,7 @@ The Default URL called is http://ip_address/GetInverterRealtimeData.cgi?Scope=De
 
 If your device has a different id than "1" then pass your device ID as "device_id" as per the configuration.
 
-If you have multiple inverters, set "scope: System" as per the configuration below to return combined values for available sensors.
+If you have multiple inverters, set "scope: System" as per the configuration below to return summed values for all inverters.
 
 ## Installation
 Copy the fronius folder in the custom_components directory into your own custom_components directory in your config directory of Home Assistant.
