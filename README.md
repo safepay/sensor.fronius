@@ -45,6 +45,15 @@ sensor:
       - year_energy
       - total_energy
 ```
+
+```
+# Example configuration.yaml entry where you have more than one inverter:
+sensor:
+  - platform: fronius
+    ip_address: LOCAL_IP_FOR_FRONIUS
+    scope: System
+```
+
 ### CONFIGURATION VARIABLES
 #### ip_address
 (string)(Required)The local IP address of your Fronius Inverter.
@@ -58,6 +67,7 @@ sensor:
 #### scope
 (string)(Optional)Set to "System" if you have multiple inverters. This will return ac_power and daily, year and total energy only.
 Default: Device
+*** Case-sensitive. ***
 
 #### monitored_conditions
 (list)(Optional)The list of conditions to monitor. Default - all conditions are monitored.
