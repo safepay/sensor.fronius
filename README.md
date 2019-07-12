@@ -20,7 +20,7 @@ E.g.:
 ../config/custom_components/fronius/sensor.py
 ```
 
-Be sure to pull raw data from GitHub or use [HACS](https://github.com/custom-components/hacs)
+Be sure to pull raw data from GitHub or use [HACS](https://custom-components.github.io/hacs/)
 
 ## Configuration
 ```
