@@ -1,9 +1,9 @@
-# Features:
+### Features:
 * Pulls data from one or more Fronius inverters
 * Creates sensors automatically or based on MONITORED_CONDITIONS
 * Simple default configuration
 
-# Configuration
+### Configuration
 ```
 sensor:
 - platform: fronius
