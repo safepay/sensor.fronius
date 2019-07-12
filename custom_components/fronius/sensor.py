@@ -28,7 +28,7 @@ CONF_SCOPE = 'scope'
 
 SCOPE_TYPES = ['Device', 'System']
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
+MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=300)
 
 # Key: ['json_key', 'name', unit, icon]
 SENSOR_TYPES = {
