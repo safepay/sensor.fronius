@@ -16,7 +16,8 @@ from homeassistant.const import (
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 
-_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
+#_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
+_INVERTERRT = 'http://{}?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
 _LOGGER = logging.getLogger(__name__)
 
 ATTRIBUTION = "Fronius Inverter Data"
@@ -42,6 +43,8 @@ SENSOR_TYPES = {
     'year_energy': ['YEAR_ENERGY', 'Year Energy', 'kWh', 'mdi:solar-power'],
     'total_energy': ['TOTAL_ENERGY', 'Total Energy', 'kWh', 'mdi:solar-power']
 }
+
+_SENSOR_TYPES_SYSTEM = {'ac_power', 'day_energy', 'year_energy', 'total_energy'}
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_IP_ADDRESS): cv.string,
@@ -71,8 +74,12 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 
     dev = []
     for variable in config[CONF_MONITORED_CONDITIONS]:
-        if SENSOR_TYPES[variable][0] in fronius_data.latest_data:
+        if scope == 'System' and variable in _SENSOR_TYPES_SYSTEM:
+            _LOGGER.error("!!!!!!!!!!!!!!! FIRST Fronius variable: %s", variable)
             dev.append(FroniusSensor(fronius_data, name, variable, scope, device_id))
+        elif  scope == 'Device':
+            dev.append(FroniusSensor(fronius_data, name, variable, scope, device_id))
+            _LOGGER.error("!!!!!!!!!!!!!!! SECOND Fronius variable: %s", variable)
 
     add_entities(dev, True)
 
