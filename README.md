@@ -20,6 +20,8 @@ E.g.:
 
 Be sure to pull raw data from GitHub:
 
+*** Only set this component up during the daytime, otherwise not all sensors will be reported ***
+
 ## Configuration
 ```
 # Example configuration.yaml entry
