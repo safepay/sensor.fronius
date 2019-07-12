@@ -18,7 +18,7 @@ E.g.:
 ../config/custom_components/fronius/sensor.py
 ```
 
-Be sure to pull raw data from GitHub:
+Be sure to pull raw data from GitHub.
 
 *** Only set this component up during the daytime, otherwise not all sensors will be reported ***
 
