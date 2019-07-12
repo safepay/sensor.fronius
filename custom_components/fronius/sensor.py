@@ -4,7 +4,8 @@ from datetime import timedelta
 
 import requests
 import voluptuous as vol
-
+from requests.exceptions import (
+    ConnectionError as ConnectError, HTTPError, Timeout)
 import json
 
 import homeassistant.helpers.config_validation as cv
@@ -125,20 +126,25 @@ class FroniusSensor(Entity):
             _LOGGER.info("Didn't receive data from the inverter")
             return
 
-        if self._scope == 'Device':
-            # Read data
-            if self._unit == "kWh":
-                self._state = round(self._data.latest_data[self._json_key]['Value'] / 1000, 1)
-            else:
-                self._state = round(self._data.latest_data[self._json_key]['Value'], 1)
-        elif self._scope == 'System':
-            total = 0
-            for item in self._data.latest_data[self._json_key]['Values']:
-                total = total + self._data.latest_data[self._json_key]['Values'][item]
-            if self._unit == "kWh":
-                self._state = round(total / 1000, 1)
-            else:
-                self._state = round(total, 1)
+        # Prevent errors when data not present at night
+        if self._json_key in self._data.latest_data:
+            if self._scope == 'Device':
+                # Read data
+                if self._unit == "kWh":
+                    self._state = round(self._data.latest_data[self._json_key]['Value'] / 1000, 1)
+                else:
+                    self._state = round(self._data.latest_data[self._json_key]['Value'], 1)
+            elif self._scope == 'System':
+                total = 0
+                for item in self._data.latest_data[self._json_key]['Values']:
+                    total = total + self._data.latest_data[self._json_key]['Values'][item]
+                if self._unit == "kWh":
+                    self._state = round(total / 1000, 1)
+                else:
+                    self._state = round(total, 1)
+        else:
+            self._state = 0
+
 
 class FroniusData:
     """Handle Fronius API object and limit updates."""
@@ -168,8 +174,6 @@ class FroniusData:
         try:
             result = requests.get(self._build_url(), timeout=10).json()
             self._data = result['Body']['Data']
-            return
-        except KeyError as error:
-            _LOGGER.error("*** Failed getting key from Fronius data: %s", error)
-        except Timeout as error:
-            _LOGGER.error("*** Timed out getting Fronius data: %s", error)
+        except (ConnectError, HTTPError, Timeout, ValueError) as error:
+            _LOGGER.error("Unable to connect to Fronius: %s", error)
+            self._data = None
