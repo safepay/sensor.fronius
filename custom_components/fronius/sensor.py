@@ -74,11 +74,9 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     dev = []
     for variable in config[CONF_MONITORED_CONDITIONS]:
         if scope == 'System' and variable in _SENSOR_TYPES_SYSTEM:
-            _LOGGER.error("!!!!!!!!!!!!!!! FIRST Fronius variable: %s", variable)
             dev.append(FroniusSensor(fronius_data, name, variable, scope, device_id))
         elif  scope == 'Device':
             dev.append(FroniusSensor(fronius_data, name, variable, scope, device_id))
-            _LOGGER.error("!!!!!!!!!!!!!!! SECOND Fronius variable: %s", variable)
 
     add_entities(dev, True)
 
