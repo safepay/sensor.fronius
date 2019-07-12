@@ -71,6 +71,9 @@ sensor:
 Default: Device
 *** Case-sensitive. ***
 
+#### scan_interval
+(Optional): Number of seconds between polls. (minimum/default = 300)
+
 #### monitored_conditions
 (list)(Optional)The list of conditions to monitor. Default - all conditions are monitored.
 
