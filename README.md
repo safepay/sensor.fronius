@@ -27,7 +27,7 @@ Be sure to pull raw data from GitHub or use [HACS](https://custom-components.git
 
 ## Configuration
 ```
-# Example configuration.yaml entry
+# Minimal configuration.yaml entry
 sensor:
   - platform: fronius
     ip_address: LOCAL_IP_FOR_FRONIUS
@@ -58,52 +58,15 @@ sensor:
     ip_address: LOCAL_IP_FOR_FRONIUS
     scope: System
 ```
-
 ### CONFIGURATION VARIABLES
-#### ip_address
-(string)(Required)The local IP address of your Fronius Inverter.
 
-#### name
-(string)(Optional)The preferred name of your Fronius Inverter. Default: "Fronius"
+key | required | type | default | description
+--- | -------- | ---- | ------- | -----------
+``ip_address`` | yes | string | | The local IP address of your Fronius Inverter.
+``name`` | no | string | ``Fronius`` | The preferred name of your Fronius Inverter.
+``device`` | no | string | ``1`` | The Device ID of your Fronius Inverter.
+``scope`` | no | string | ``Device`` | Set to ``System`` if you have multiple inverters. This will return ``ac_power, daily_energy, year_energy`` and, ``total_energy`` only. Case-sensitive.
+``scan_interval`` | no | integer | ``300`` | Number of seconds between polls.
+``monitored_conditions`` | no | list | All | List of monitored conditions from: ``ac_power, ac_current, ac_voltage, ac_frequency, dc_current, dc_energy, daily_energy, year_energy, total_energy``
 
-#### device
-(string)(Optional)The Device ID of your Fronius Inverter. Default: 1
-
-#### scope
-(string)(Optional)Set to "System" if you have multiple inverters. This will return ac_power and daily, year and total energy only.
-Default: Device
-*** Case-sensitive. ***
-
-#### scan_interval
-(Optional): Number of seconds between polls. (minimum/default = 300)
-
-#### monitored_conditions
-(list)(Optional)The list of conditions to monitor. Default - all conditions are monitored.
-
-##### ac_power
-The AC Power in W.
-
-##### ac_current
-The AC current in A.
-
-##### ac_voltage
-The AC voltage in V.
-
-##### ac_frequency
-The AC Frequency in Hz.
-
-##### dc_current
-The DC Current in A.
-
-##### dc_energy
-The DC energy in Wh.
-
-##### daily_energy
-The energy in kWh produced that day.
-
-##### year_energy
-The energy in kWh produced the last year.
-
-##### total_energy
-The energy in kWh produced in the lifetime of the inverter.
 
