@@ -3,7 +3,7 @@
 * Creates sensors automatically or based on MONITORED_CONDITIONS
 * Simple default configuration
 
-### Configuration
+### Minimal Configuration
 ```
 sensor:
 - platform: fronius
