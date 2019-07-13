@@ -64,7 +64,7 @@ key | required | type | default | description
 --- | -------- | ---- | ------- | -----------
 ``ip_address`` | yes | string | | The local IP address of your Fronius Inverter.
 ``name`` | no | string | ``Fronius`` | The preferred name of your Fronius Inverter.
-``device`` | no | string | ``1`` | The Device ID of your Fronius Inverter.
+``device_id`` | no | string | ``1`` | The Device ID of your Fronius Inverter.
 ``scope`` | no | string | ``Device`` | Set to ``System`` if you have multiple inverters. This will return ``ac_power, daily_energy, year_energy`` and, ``total_energy`` only. Case-sensitive.
 ``scan_interval`` | no | integer | ``300`` | Number of seconds between polls.
 ``monitored_conditions`` | no | list | All | List of monitored conditions from: ``ac_power, ac_current, ac_voltage, ac_frequency, dc_current, dc_energy, daily_energy, year_energy, total_energy``
