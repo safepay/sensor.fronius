@@ -39,8 +39,8 @@ SENSOR_TYPES = {
     'dc_current': ['IDC', 'DC Current', 'A', 'mdi:solar-power'],
     'dc_voltage': ['UDC', 'DC Voltage', 'V', 'mdi:solar-power'],
     'day_energy': ['DAY_ENERGY', 'Day Energy', 'kWh', 'mdi:solar-power'],
-    'year_energy': ['YEAR_ENERGY', 'Year Energy', 'kWh', 'mdi:solar-power'],
-    'total_energy': ['TOTAL_ENERGY', 'Total Energy', 'kWh', 'mdi:solar-power']
+    'year_energy': ['YEAR_ENERGY', 'Year Energy', 'MWh', 'mdi:solar-power'],
+    'total_energy': ['TOTAL_ENERGY', 'Total Energy', 'MWh', 'mdi:solar-power']
 }
 
 _SENSOR_TYPES_SYSTEM = {'ac_power', 'day_energy', 'year_energy', 'total_energy'}
@@ -134,7 +134,9 @@ class FroniusSensor(Entity):
         if self._json_key in self._data.latest_data:
             if self._scope == 'Device':
                 # Read data
-                if self._unit == "kWh":
+                if self._unit == "MWh":
+                    self._state = round(self._data.latest_data[self._json_key]['Value'] / 1000000, 1)
+                elif self._unit == "kWh":
                     self._state = round(self._data.latest_data[self._json_key]['Value'] / 1000, 1)
                 else:
                     self._state = round(self._data.latest_data[self._json_key]['Value'], 1)
@@ -142,7 +144,9 @@ class FroniusSensor(Entity):
                 total = 0
                 for item in self._data.latest_data[self._json_key]['Values']:
                     total = total + self._data.latest_data[self._json_key]['Values'][item]
-                if self._unit == "kWh":
+                if self._unit == "MWh":
+                    self._state = round(total / 1000000, 1)
+                elif self._unit == "kWh":
                     self._state = round(total / 1000, 1)
                 else:
                     self._state = round(total, 1)
