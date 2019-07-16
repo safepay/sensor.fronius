@@ -141,7 +141,7 @@ class FroniusSensor(Entity):
             elif self._scope == 'System':
                 total = 0
                 for item in self._data.latest_data[self._json_key]['Values']:
-                    total = total + self._data.latest_data[self._json_key]['Values'][item]
+                    total += self._data.latest_data[self._json_key]['Values'][item]
                 if self._unit == "kWh":
                     self._state = round(total / 1000, 1)
                 else:
