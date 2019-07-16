@@ -5,7 +5,11 @@
 
 # Fronius Inverter Sensor for Home Assistant
 
-Returns "Common Inverter Data" from Fronius inverters.
+The soon-to-be-default HA Fronius component returns a single sensor that you then have to write template code to extract individual values. This is too messy for my liking.
+
+Therefore this Fronius sensor creates up to nine individual sensors in HA and converts Wh to kWh for easy display or use in automations.
+
+It works by reading "Common Inverter Data" from Fronius inverters.
 
 The Default URL called is http://ip_address/GetInverterRealtimeData.cgi?Scope=Device&DeviceId=1&DataCollection=CommonInverterData
 
