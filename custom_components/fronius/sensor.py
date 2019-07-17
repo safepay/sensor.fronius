@@ -16,8 +16,7 @@ from homeassistant.const import (
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 
-#_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
-_INVERTERRT = 'http://{}?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
+_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
 _LOGGER = logging.getLogger(__name__)
 
 ATTRIBUTION = "Fronius Inverter Data"
@@ -41,7 +40,7 @@ SENSOR_TYPES = {
     'ac_frequency': ['FAC', 'AC Frequency', 'Hz', 'mdi:solar-power'],
     'dc_current': ['IDC', 'DC Current', 'A', 'mdi:solar-power'],
     'dc_voltage': ['UDC', 'DC Voltage', 'V', 'mdi:solar-power'],
-    'day_energy': ['DAY_ENERGY', 'Day Energy', 'Wh', 'mdi:solar-power'],
+    'day_energy': ['DAY_ENERGY', 'Day Energy', 'kWh', 'mdi:solar-power'],
     'year_energy': ['YEAR_ENERGY', 'Year Energy', 'Wh', 'mdi:solar-power'],
     'total_energy': ['TOTAL_ENERGY', 'Total Energy', 'Wh', 'mdi:solar-power']
 }
@@ -151,13 +150,15 @@ class FroniusSensor(Entity):
                     state += self._data.latest_data[self._json_key]['Values'][item]
 
         # convert and round the result
-        if self._unit == "Wh":
+        if self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY":
             if self._units == "MWh":
-                self._state = round(state / 1000000, 0)
+                self._state = round(state / 1000000, 1)
             elif self._units == "kWh":
                 self._state = round(state / 1000, 1)
             else:
                 self._state = round(state, 1)
+        elif self._json_key == "DAY_ENERGY":
+            self._state = round(state / 1000, 1)
         else:
             self._state = round(state, 1)
 
