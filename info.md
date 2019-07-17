@@ -1,3 +1,5 @@
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs) [![fronius](https://img.shields.io/github/release/safepay/sensor.fronius.svg)](https://github.com/safepay/sensor.fronius) ![Maintenance](https://img.shields.io/maintenance/yes/2019.svg)
+
 ### Features:
 * Pulls data from one or more Fronius inverters
 * Creates sensors automatically or based on MONITORED_CONDITIONS
