@@ -16,7 +16,8 @@ from homeassistant.const import (
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 
-_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
+#_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
+_INVERTERRT = 'http://{}?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
 _LOGGER = logging.getLogger(__name__)
 
 ATTRIBUTION = "Fronius Inverter Data"
@@ -25,8 +26,10 @@ CONF_NAME = 'name'
 CONF_IP_ADDRESS = 'ip_address'
 CONF_DEVICE_ID = 'device_id'
 CONF_SCOPE = 'scope'
+CONF_UNITS = 'units'
 
 SCOPE_TYPES = ['Device', 'System']
+UNIT_TYPES = ['Wh', 'kWh', 'MWh']
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=300)
 
@@ -38,9 +41,9 @@ SENSOR_TYPES = {
     'ac_frequency': ['FAC', 'AC Frequency', 'Hz', 'mdi:solar-power'],
     'dc_current': ['IDC', 'DC Current', 'A', 'mdi:solar-power'],
     'dc_voltage': ['UDC', 'DC Voltage', 'V', 'mdi:solar-power'],
-    'day_energy': ['DAY_ENERGY', 'Day Energy', 'kWh', 'mdi:solar-power'],
-    'year_energy': ['YEAR_ENERGY', 'Year Energy', 'kWh', 'mdi:solar-power'],
-    'total_energy': ['TOTAL_ENERGY', 'Total Energy', 'kWh', 'mdi:solar-power']
+    'day_energy': ['DAY_ENERGY', 'Day Energy', 'Wh', 'mdi:solar-power'],
+    'year_energy': ['YEAR_ENERGY', 'Year Energy', 'Wh', 'mdi:solar-power'],
+    'total_energy': ['TOTAL_ENERGY', 'Total Energy', 'Wh', 'mdi:solar-power']
 }
 
 _SENSOR_TYPES_SYSTEM = {'ac_power', 'day_energy', 'year_energy', 'total_energy'}
@@ -51,6 +54,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_NAME, default='Fronius'): cv.string,
     vol.Optional(CONF_SCOPE, default='Device'):
         vol.In(SCOPE_TYPES),
+    vol.Optional(CONF_UNITS, default='kWh'):
+        vol.In(UNIT_TYPES),
     vol.Required(CONF_MONITORED_CONDITIONS, default=list(SENSOR_TYPES)):
         vol.All(cv.ensure_list, [vol.In(SENSOR_TYPES)]),
 })
@@ -61,6 +66,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     ip_address = config[CONF_IP_ADDRESS]
     device_id = config.get(CONF_DEVICE_ID)
     scope = config.get(CONF_SCOPE)
+    units = config.get(CONF_UNITS)
     name = config.get(CONF_NAME)
 
     fronius_data = FroniusData(ip_address, device_id, scope)
@@ -74,9 +80,9 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     dev = []
     for variable in config[CONF_MONITORED_CONDITIONS]:
         if scope == 'System' and variable in _SENSOR_TYPES_SYSTEM:
-            dev.append(FroniusSensor(fronius_data, name, variable, scope, device_id))
+            dev.append(FroniusSensor(fronius_data, name, variable, scope, units, device_id))
         elif  scope == 'Device':
-            dev.append(FroniusSensor(fronius_data, name, variable, scope, device_id))
+            dev.append(FroniusSensor(fronius_data, name, variable, scope, units, device_id))
 
     add_entities(dev, True)
 
@@ -84,7 +90,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 class FroniusSensor(Entity):
     """Implementation of the Fronius inverter sensor."""
 
-    def __init__(self, inverter_data, name, sensor_type, scope, device_id):
+    def __init__(self, inverter_data, name, sensor_type, scope, units, device_id):
         """Initialize the sensor."""
         self._client = name
         self._json_key = SENSOR_TYPES[sensor_type][0]
@@ -93,6 +99,7 @@ class FroniusSensor(Entity):
         self._state = None
         self._device_id = device_id
         self._scope = scope
+        self._units = units
         self._unit = SENSOR_TYPES[sensor_type][2]
         self._data = inverter_data
         self._icon = SENSOR_TYPES[sensor_type][3]
@@ -110,7 +117,10 @@ class FroniusSensor(Entity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
-        return self._unit
+        if self._unit == "Wh":
+            return self._units
+        else:
+            return self._unit
 
     @property
     def device_state_attributes(self):
@@ -132,23 +142,24 @@ class FroniusSensor(Entity):
 
         # Prevent errors when data not present at night
         if self._json_key in self._data.latest_data:
+            state = 0
             if self._scope == 'Device':
                 # Read data
-                if self._unit == "kWh":
-                    self._state = round(self._data.latest_data[self._json_key]['Value'] / 1000, 1)
-                else:
-                    self._state = round(self._data.latest_data[self._json_key]['Value'], 1)
+                state = self._data.latest_data[self._json_key]['Value']
             elif self._scope == 'System':
-                total = 0
                 for item in self._data.latest_data[self._json_key]['Values']:
-                    total += self._data.latest_data[self._json_key]['Values'][item]
-                if self._unit == "kWh":
-                    self._state = round(total / 1000, 1)
-                else:
-                    self._state = round(total, 1)
-        else:
-            self._state = 0
+                    state += self._data.latest_data[self._json_key]['Values'][item]
 
+        # convert and round the result
+        if self._unit == "Wh":
+            if self._units == "MWh":
+                self._state = round(state / 1000000, 0)
+            elif self._units == "kWh":
+                self._state = round(state / 1000, 1)
+            else:
+                self._state = round(state, 1)
+        else:
+            self._state = round(state, 1)
 
 class FroniusData:
     """Handle Fronius API object and limit updates."""
