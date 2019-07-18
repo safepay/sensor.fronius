@@ -16,7 +16,10 @@ from homeassistant.const import (
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 
-_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
+#_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
+_INVERTERRT = 'http://{}Device?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
+#_POWERFLOW_URL = 'http://{}/solar_api/v1/GetPowerFlowRealtimeData.fcgi'
+_POWERFLOW_URL = 'http://{}PowerFlow'
 _LOGGER = logging.getLogger(__name__)
 
 ATTRIBUTION = "Fronius Inverter Data"
@@ -26,23 +29,27 @@ CONF_IP_ADDRESS = 'ip_address'
 CONF_DEVICE_ID = 'device_id'
 CONF_SCOPE = 'scope'
 CONF_UNITS = 'units'
+CONF_POWERFLOW = 'powerflow'
 
 SCOPE_TYPES = ['Device', 'System']
 UNIT_TYPES = ['Wh', 'kWh', 'MWh']
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=300)
 
-# Key: ['json_key', 'name', unit, icon]
+# Key: ['device', json_key', 'name', unit, icon]
 SENSOR_TYPES = {
-    'ac_power': ['PAC', 'AC Power', 'W', 'mdi:solar-power'],
-    'ac_current': ['IAC', 'AC Current', 'A', 'mdi:solar-power'],
-    'ac_voltage': ['UAC', 'AC Voltage', 'V', 'mdi:solar-power'],
-    'ac_frequency': ['FAC', 'AC Frequency', 'Hz', 'mdi:solar-power'],
-    'dc_current': ['IDC', 'DC Current', 'A', 'mdi:solar-power'],
-    'dc_voltage': ['UDC', 'DC Voltage', 'V', 'mdi:solar-power'],
-    'day_energy': ['DAY_ENERGY', 'Day Energy', 'kWh', 'mdi:solar-power'],
-    'year_energy': ['YEAR_ENERGY', 'Year Energy', 'Wh', 'mdi:solar-power'],
-    'total_energy': ['TOTAL_ENERGY', 'Total Energy', 'Wh', 'mdi:solar-power']
+    'ac_power': ['inverter', 'PAC', 'AC Power', 'W', 'mdi:solar-power'],
+    'ac_current': ['inverter', 'IAC', 'AC Current', 'A', 'mdi:solar-power'],
+    'ac_voltage': ['inverter', 'UAC', 'AC Voltage', 'V', 'mdi:solar-power'],
+    'ac_frequency': ['inverter', 'FAC', 'AC Frequency', 'Hz', 'mdi:solar-power'],
+    'dc_current': ['inverter', 'IDC', 'DC Current', 'A', 'mdi:solar-power'],
+    'dc_voltage': ['inverter', 'UDC', 'DC Voltage', 'V', 'mdi:solar-power'],
+    'day_energy': ['inverter', 'DAY_ENERGY', 'Day Energy', 'kWh', 'mdi:solar-power'],
+    'year_energy': ['inverter', 'YEAR_ENERGY', 'Year Energy', 'Wh', 'mdi:solar-power'],
+    'total_energy': ['inverter', 'TOTAL_ENERGY', 'Total Energy', 'Wh', 'mdi:solar-power'],
+    'grid_usage': ['powerflow', 'P_Grid', 'Grid Usage', 'W', 'mdi:solar-power'],
+    'house_load': ['powerflow', 'P_Load', 'House Load', 'W', 'mdi:solar-power'],
+    'panel_status': ['powerflow', 'P_PV', 'Panel Status', 'W', 'mdi:solar-power']
 }
 
 _SENSOR_TYPES_SYSTEM = {'ac_power', 'day_energy', 'year_energy', 'total_energy'}
@@ -55,7 +62,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
         vol.In(SCOPE_TYPES),
     vol.Optional(CONF_UNITS, default='kWh'):
         vol.In(UNIT_TYPES),
-    vol.Required(CONF_MONITORED_CONDITIONS, default=list(SENSOR_TYPES)):
+    vol.Optional(CONF_POWERFLOW, default=False): cv.boolean,
+    vol.Optional(CONF_MONITORED_CONDITIONS, default=list(SENSOR_TYPES)):
         vol.All(cv.ensure_list, [vol.In(SENSOR_TYPES)]),
 })
 
@@ -67,21 +75,35 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     scope = config.get(CONF_SCOPE)
     units = config.get(CONF_UNITS)
     name = config.get(CONF_NAME)
+    powerflow = config.get(CONF_POWERFLOW)
 
-    fronius_data = FroniusData(ip_address, device_id, scope)
+    inverter_data = InverterData(ip_address, device_id, scope)
+    if powerflow:
+        powerflow_data = PowerflowData(ip_address)
 
     try:
-        fronius_data.update()
+        inverter_data.update()
     except ValueError as err:
         _LOGGER.error("Received error from Fronius inverter: %s", err)
         return
 
+    if powerflow:
+        try:
+            powerflow_data.update()
+        except ValueError as err:
+            _LOGGER.error("Received error from Fronius Powerflow: %s", err)
+            return
+
+
     dev = []
     for variable in config[CONF_MONITORED_CONDITIONS]:
-        if scope == 'System' and variable in _SENSOR_TYPES_SYSTEM:
-            dev.append(FroniusSensor(fronius_data, name, variable, scope, units, device_id))
-        elif  scope == 'Device':
-            dev.append(FroniusSensor(fronius_data, name, variable, scope, units, device_id))
+        if SENSOR_TYPES[variable][0] == "inverter":
+            if scope == 'System' and variable in _SENSOR_TYPES_SYSTEM:
+                dev.append(FroniusSensor(inverter_data, name, variable, scope, units, device_id))
+            elif  scope == 'Device':
+                dev.append(FroniusSensor(inverter_data, name, variable, scope, units, device_id))
+        elif SENSOR_TYPES[variable][0] == "powerflow" and powerflow:
+            dev.append(FroniusSensor(powerflow_data, name, variable, scope, units, device_id, powerflow))
 
     add_entities(dev, True)
 
@@ -89,19 +111,21 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 class FroniusSensor(Entity):
     """Implementation of the Fronius inverter sensor."""
 
-    def __init__(self, inverter_data, name, sensor_type, scope, units, device_id):
+    def __init__(self, device_data, name, sensor_type, scope, units, device_id, powerflow=False):
         """Initialize the sensor."""
         self._client = name
-        self._json_key = SENSOR_TYPES[sensor_type][0]
-        self._name = SENSOR_TYPES[sensor_type][1]
+        self._device = SENSOR_TYPES[sensor_type][0]
+        self._json_key = SENSOR_TYPES[sensor_type][1]
+        self._name = SENSOR_TYPES[sensor_type][2]
         self._type = sensor_type
         self._state = None
         self._device_id = device_id
         self._scope = scope
         self._units = units
-        self._unit = SENSOR_TYPES[sensor_type][2]
-        self._data = inverter_data
-        self._icon = SENSOR_TYPES[sensor_type][3]
+        self._unit = SENSOR_TYPES[sensor_type][3]
+        self._data = device_data
+        self._icon = SENSOR_TYPES[sensor_type][4]
+        self._powerflow = powerflow
 
     @property
     def name(self):
@@ -140,14 +164,19 @@ class FroniusSensor(Entity):
             return
 
         # Prevent errors when data not present at night
+        state = 0
         if self._json_key in self._data.latest_data:
-            state = 0
-            if self._scope == 'Device':
+            if self._device == 'inverter':
+                if self._scope == 'Device':
+                    # Read data
+                    state = self._data.latest_data[self._json_key]['Value']
+                elif self._scope == 'System':
+                    for item in self._data.latest_data[self._json_key]['Values']:
+                        state += self._data.latest_data[self._json_key]['Values'][item]
+            elif self._device == 'powerflow':
                 # Read data
-                state = self._data.latest_data[self._json_key]['Value']
-            elif self._scope == 'System':
-                for item in self._data.latest_data[self._json_key]['Values']:
-                    state += self._data.latest_data[self._json_key]['Values'][item]
+                if self._data.latest_data[self._json_key]:
+                    state = self._data.latest_data[self._json_key]
 
         # convert and round the result
         if self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY":
@@ -162,7 +191,7 @@ class FroniusSensor(Entity):
         else:
             self._state = round(state, 1)
 
-class FroniusData:
+class InverterData:
     """Handle Fronius API object and limit updates."""
 
     def __init__(self, ip_address, device_id, scope):
@@ -174,7 +203,7 @@ class FroniusData:
     def _build_url(self):
         """Build the URL for the requests."""
         url = _INVERTERRT.format(self._ip_address, self._scope, self._device_id)
-        _LOGGER.debug("Fronius URL: %s", url)
+        _LOGGER.error("Fronius Inverter URL: %s", url)
         return url
 
     @property
@@ -193,3 +222,33 @@ class FroniusData:
         except (ConnectError, HTTPError, Timeout, ValueError) as error:
             _LOGGER.error("Unable to connect to Fronius: %s", error)
             self._data = None
+
+class PowerflowData:
+    """Handle Fronius API object and limit updates."""
+
+    def __init__(self, ip_address):
+        """Initialize the data object."""
+        self._ip_address = ip_address
+
+    def _build_url(self):
+        """Build the URL for the requests."""
+        url = _POWERFLOW_URL.format(self._ip_address)
+        _LOGGER.error("Fronius Powerflow URL: %s", url)
+        return url
+
+    @property
+    def latest_data(self):
+        """Return the latest data object."""
+        if self._data:
+            return self._data
+        return None
+
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+    def update(self):
+        """Get the latest data from inverter."""
+        try:
+            result = requests.get(self._build_url(), timeout=10).json()
+            self._data = result['Body']['Data']['Site']
+        except (ConnectError, HTTPError, Timeout, ValueError) as error:
+            _LOGGER.error("Unable to connect to Fronius: %s", error)
+            self._data = None            
