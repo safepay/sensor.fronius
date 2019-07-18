@@ -68,6 +68,7 @@ key | required | type | default | description
 --- | -------- | ---- | ------- | -----------
 ``ip_address`` | yes | string | | The local IP address of your Fronius Inverter.
 ``name`` | no | string | ``Fronius`` | The preferred name of your Fronius Inverter.
+``powerflow`` | no | boolean | ``False`` | Set to True if you have a PowerFlow meter.
 ``units`` | no | string | ``kWh`` | The preferred units for Year and Total Energy from ``Wh, kWh, MWh``.
 ``device_id`` | no | string | ``1`` | The Device ID of your Fronius Inverter.
 ``scope`` | no | string | ``Device`` | Set to ``System`` if you have multiple inverters. This will return ``ac_power, daily_energy, year_energy`` and, ``total_energy`` only. Case-sensitive.
