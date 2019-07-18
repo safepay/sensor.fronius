@@ -43,6 +43,7 @@ sensor:
   - platform: fronius
     ip_address: LOCAL_IP_FOR_FRONIUS
     device_id: 1
+    powerflow: True
     monitored_conditions:
       - ac_power
       - ac_current
@@ -53,6 +54,9 @@ sensor:
       - day_energy
       - year_energy
       - total_energy
+      - grid_usage
+      - house_load
+      - panel_status
 ```
 
 ```
