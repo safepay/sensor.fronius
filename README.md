@@ -9,9 +9,9 @@ This Fronius sensor creates up to 12 individual sensors in HA and converts Wh to
 
 It works by reading data from Fronius inverters and, optionally, from PowerFlow devices.
 
-The Default URL called is http://ip_address/GetInverterRealtimeData.cgi?Scope=Device&DeviceId=1&DataCollection=CommonInverterData
+The Default URL called is ``http://ip_address/GetInverterRealtimeData.cgi?Scope=Device&DeviceId=1&DataCollection=CommonInverterData``
 
-The optional PowerFlow URL is http://ip_address/solar_api/v1/GetPowerFlowRealtimeData.fcgi
+The optional PowerFlow URL is ``http://ip_address/solar_api/v1/GetPowerFlowRealtimeData.fcgi``
 
 If your inverter has a different id than "1" then pass your device ID as "device_id" as per the configuration.
 
