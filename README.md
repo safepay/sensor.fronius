@@ -31,7 +31,7 @@ Be sure to pull raw data from GitHub or use [HACS](https://custom-components.git
 
 ## Configuration
 ```
-# Minimal configuration.yaml entry
+# Minimal configuration.yaml entry:
 sensor:
   - platform: fronius
     ip_address: LOCAL_IP_FOR_FRONIUS
