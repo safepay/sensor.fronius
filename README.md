@@ -3,7 +3,7 @@
 [![Buy me a beer!](https://img.shields.io/badge/Buy%20me%20a%20beer!-%F0%9F%8D%BA-yellow.svg)](https://www.buymeacoffee.com/7PcGoSkb6)
 
 
-# Fronius Inverter Sensor for Home Assistant
+# Fronius Sensor for Home Assistant
 
 This Fronius sensor creates up to 12 individual sensors in HA and converts Wh to kWh or MWh for easy display or use in automations.
 
