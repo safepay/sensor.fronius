@@ -1,5 +1,5 @@
 {
-  "domain": "fronius",
+  "domain": "fronius_inverter",
   "name": "Fronius",
   "documentation": "https://github.com/safepay/sensor.fronius/blob/master/README.md",
   "dependencies": [],
