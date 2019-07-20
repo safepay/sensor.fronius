@@ -8,7 +8,7 @@
 ### Minimal Configuration
 ```
 sensor:
-- platform: fronius
+- platform: fronius_inverter
     ip_address: LOCAL_IP_FOR_FRONIUS
 ```
 
