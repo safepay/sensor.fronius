@@ -18,13 +18,13 @@ If your inverter has a different id than "1" then pass your device ID as "device
 If you have multiple inverters, set ``scope: System`` as per the configuration below to return summed values for all inverters.
 
 ## Installation
-Copy the fronius folder in the custom_components directory into your own custom_components directory in your config directory of Home Assistant.
+Copy the ``fronius_inverter`` folder in the custom_components directory into your own custom_components directory in your config directory of Home Assistant.
 
 E.g.:
 ```
-../config/custom_components/fronius/__init__.py
-../config/custom_components/fronius/manifest.json
-../config/custom_components/fronius/sensor.py
+../config/custom_components/fronius_inverter/__init__.py
+../config/custom_components/fronius_inverter/manifest.json
+../config/custom_components/fronius_inverter/sensor.py
 ```
 
 Be sure to pull raw data from GitHub or use [HACS](https://custom-components.github.io/hacs/)
@@ -33,14 +33,14 @@ Be sure to pull raw data from GitHub or use [HACS](https://custom-components.git
 ```
 # Minimal configuration.yaml entry:
 sensor:
-  - platform: fronius
+  - platform: fronius_inverter
     ip_address: LOCAL_IP_FOR_FRONIUS
 ```
 
 ```
 # Example configuration.yaml entry where you can specify the sensors you want:
 sensor:
-  - platform: fronius
+  - platform: fronius_inverter
     ip_address: LOCAL_IP_FOR_FRONIUS
     device_id: 1
     powerflow: True
@@ -62,7 +62,7 @@ sensor:
 ```
 # Example configuration.yaml entry where you have more than one inverter:
 sensor:
-  - platform: fronius
+  - platform: fronius_inverter
     ip_address: LOCAL_IP_FOR_FRONIUS
     scope: System
 ```
