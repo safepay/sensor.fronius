@@ -49,7 +49,7 @@ SENSOR_TYPES = {
     'total_energy': ['inverter', 'TOTAL_ENERGY', 'Total Energy', 'Wh', 'mdi:solar-power'],
     'grid_usage': ['powerflow', 'P_Grid', 'Grid Usage', 'W', 'mdi:solar-power'],
     'house_load': ['powerflow', 'P_Load', 'House Load', 'W', 'mdi:solar-power'],
-    'panel_status': ['powerflow', 'P_PV', 'Panel Status', 'W', 'mdi:solar-power']
+    'panel_status': ['powerflow', 'P_PV', 'Panel Status', 'W', 'mdi:solar-panel']
 }
 
 _SENSOR_TYPES_SYSTEM = {'ac_power', 'day_energy', 'year_energy', 'total_energy'}
@@ -93,7 +93,6 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         except ValueError as err:
             _LOGGER.error("Received error from Fronius Powerflow: %s", err)
             return
-
 
     dev = []
     for variable in config[CONF_MONITORED_CONDITIONS]:
@@ -165,7 +164,7 @@ class FroniusSensor(Entity):
 
         # Prevent errors when data not present at night
         state = 0
-        if self._json_key in self._data.latest_data:
+        if self._data.latest_data and (self._json_key in self._data.latest_data):
             if self._device == 'inverter':
                 if self._scope == 'Device':
                     # Read data
@@ -219,7 +218,7 @@ class InverterData:
         try:
             result = requests.get(self._build_url(), timeout=10).json()
             self._data = result['Body']['Data']
-        except (ConnectError, HTTPError, Timeout, ValueError) as error:
+        except (KeyError, ConnectError, HTTPError, Timeout, ValueError) as error:
             _LOGGER.error("Unable to connect to Fronius: %s", error)
             self._data = None
 
@@ -249,6 +248,7 @@ class PowerflowData:
         try:
             result = requests.get(self._build_url(), timeout=10).json()
             self._data = result['Body']['Data']['Site']
-        except (ConnectError, HTTPError, Timeout, ValueError) as error:
+        except (KeyError, ConnectError, HTTPError, Timeout, ValueError) as error:
             _LOGGER.error("Unable to connect to Fronius: %s", error)
-            self._data = None            
+            self._data = None
+
