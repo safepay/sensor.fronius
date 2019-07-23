@@ -34,7 +34,7 @@ CONF_POWERFLOW = 'powerflow'
 SCOPE_TYPES = ['Device', 'System']
 UNIT_TYPES = ['Wh', 'kWh', 'MWh']
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=300)
+MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=10)
 
 # Key: ['device', json_key', 'name', unit, icon]
 SENSOR_TYPES = {
@@ -106,7 +106,6 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 
     add_entities(dev, True)
 
-
 class FroniusSensor(Entity):
     """Implementation of the Fronius inverter sensor."""
 
@@ -163,7 +162,7 @@ class FroniusSensor(Entity):
             return
 
         # Prevent errors when data not present at night
-        state = 0
+        state = None
         if self._data.latest_data and (self._json_key in self._data.latest_data):
             if self._device == 'inverter':
                 if self._scope == 'Device':
@@ -178,17 +177,18 @@ class FroniusSensor(Entity):
                     state = self._data.latest_data[self._json_key]
 
         # convert and round the result
-        if self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY":
-            if self._units == "MWh":
-                self._state = round(state / 1000000, 1)
-            elif self._units == "kWh":
+        if state:
+            if self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY":
+                if self._units == "MWh":
+                    self._state = round(state / 1000000, 1)
+                elif self._units == "kWh":
+                    self._state = round(state / 1000, 1)
+                else:
+                    self._state = round(state, 1)
+            elif self._json_key == "DAY_ENERGY":
                 self._state = round(state / 1000, 1)
             else:
                 self._state = round(state, 1)
-        elif self._json_key == "DAY_ENERGY":
-            self._state = round(state / 1000, 1)
-        else:
-            self._state = round(state, 1)
 
 class InverterData:
     """Handle Fronius API object and limit updates."""
@@ -202,7 +202,7 @@ class InverterData:
     def _build_url(self):
         """Build the URL for the requests."""
         url = _INVERTERRT.format(self._ip_address, self._scope, self._device_id)
-        _LOGGER.error("Fronius Inverter URL: %s", url)
+        _LOGGER.debug("Fronius Inverter URL: %s", url)
         return url
 
     @property
@@ -232,7 +232,7 @@ class PowerflowData:
     def _build_url(self):
         """Build the URL for the requests."""
         url = _POWERFLOW_URL.format(self._ip_address)
-        _LOGGER.error("Fronius Powerflow URL: %s", url)
+        _LOGGER.debug("Fronius Powerflow URL: %s", url)
         return url
 
     @property
