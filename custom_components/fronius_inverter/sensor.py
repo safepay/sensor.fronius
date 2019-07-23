@@ -17,9 +17,7 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 
 _INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
-#_INVERTERRT = 'http://{}Device?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
 _POWERFLOW_URL = 'http://{}/solar_api/v1/GetPowerFlowRealtimeData.fcgi'
-#_POWERFLOW_URL = 'http://{}PowerFlow'
 _LOGGER = logging.getLogger(__name__)
 
 ATTRIBUTION = "Fronius Inverter Data"
@@ -34,7 +32,7 @@ CONF_POWERFLOW = 'powerflow'
 SCOPE_TYPES = ['Device', 'System']
 UNIT_TYPES = ['Wh', 'kWh', 'MWh']
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=10)
+MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=300)
 
 # Key: ['device', json_key', 'name', unit, icon]
 SENSOR_TYPES = {
@@ -161,8 +159,11 @@ class FroniusSensor(Entity):
             _LOGGER.info("Didn't receive data from the inverter")
             return
 
-        # Prevent errors when data not present at night
-        state = None
+        # Prevent errors when data not present at night but retain long term states
+        if self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY":
+            state = None
+        else:
+            state = 0
         if self._data.latest_data and (self._json_key in self._data.latest_data):
             if self._device == 'inverter':
                 if self._scope == 'Device':
@@ -177,7 +178,7 @@ class FroniusSensor(Entity):
                     state = self._data.latest_data[self._json_key]
 
         # convert and round the result
-        if state:
+        if state is not None:
             if self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY":
                 if self._units == "MWh":
                     self._state = round(state / 1000000, 1)
