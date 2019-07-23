@@ -9,13 +9,22 @@ This Fronius sensor creates up to 12 individual sensors in HA and converts Wh to
 
 It works by reading data from Fronius inverters and, optionally, from PowerFlow devices.
 
+### URL's Utilised
 The Default URL called is ``http://ip_address/GetInverterRealtimeData.cgi?Scope=Device&DeviceId=1&DataCollection=CommonInverterData``
 
 The optional PowerFlow URL is ``http://ip_address/solar_api/v1/GetPowerFlowRealtimeData.fcgi``
 
+### Getting Your System to Report
 If your inverter has a different id than "1" then pass your device ID as "device_id" as per the configuration.
 
 If you have multiple inverters, set ``scope: System`` as per the configuration below to return summed values for all inverters.
+
+### Handling Inverter Offline at Night
+Fronius inverters shut down their API endpoints at night by default.
+
+This component will set all values to 0 (Zero) during that time except for the Yearly and Lifetime totals.
+
+This means that if you restart HA at night, you will get zeros for all values and "-" for Yearly and Lifetime until the inverter is back online the next morning.
 
 ## Installation
 Copy the ``fronius_inverter`` folder in the custom_components directory into your own custom_components directory in your config directory of Home Assistant.
