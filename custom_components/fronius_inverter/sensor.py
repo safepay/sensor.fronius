@@ -7,6 +7,7 @@ import voluptuous as vol
 from requests.exceptions import (
     ConnectionError as ConnectError, HTTPError, Timeout)
 import json
+from numbers import Number
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.sensor import PLATFORM_SCHEMA
@@ -16,8 +17,10 @@ from homeassistant.const import (
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 
-_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
-_POWERFLOW_URL = 'http://{}/solar_api/v1/GetPowerFlowRealtimeData.fcgi'
+#_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
+#_POWERFLOW_URL = 'http://{}/solar_api/v1/GetPowerFlowRealtimeData.fcgi'
+_INVERTERRT = 'http://{}Device?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
+_POWERFLOW_URL = 'http://{}PowerFlow'
 _LOGGER = logging.getLogger(__name__)
 
 ATTRIBUTION = "Fronius Inverter Data"
@@ -160,10 +163,10 @@ class FroniusSensor(Entity):
             return
 
         # Prevent errors when data not present at night but retain long term states
+        state = 0
         if self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY":
             state = None
-        else:
-            state = 0
+
         if self._data.latest_data and (self._json_key in self._data.latest_data):
             if self._device == 'inverter':
                 if self._scope == 'Device':
@@ -178,7 +181,7 @@ class FroniusSensor(Entity):
                     state = self._data.latest_data[self._json_key]
 
         # convert and round the result
-        if state is not None:
+        if isinstance(state, Number):
             if self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY":
                 if self._units == "MWh":
                     self._state = round(state / 1000000, 1)
