@@ -19,7 +19,7 @@ from homeassistant.util import Throttle
 
 _INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
 _POWERFLOW_URL = 'http://{}/solar_api/v1/GetPowerFlowRealtimeData.fcgi'
-#_INVERTERRT = 'http://{}Device?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
+#_INVERTERRT = 'http://{}?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
 #_POWERFLOW_URL = 'http://{}PowerFlow'
 _LOGGER = logging.getLogger(__name__)
 
@@ -164,8 +164,6 @@ class FroniusSensor(Entity):
 
         # Prevent errors when data not present at night but retain long term states
         state = 0
-        if self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY":
-            state = None
 
         if self._data.latest_data and (self._json_key in self._data.latest_data):
             if self._device == 'inverter':
@@ -174,25 +172,24 @@ class FroniusSensor(Entity):
                     state = self._data.latest_data[self._json_key]['Value']
                 elif self._scope == 'System':
                     for item in self._data.latest_data[self._json_key]['Values']:
-                        state += self._data.latest_data[self._json_key]['Values'][item]
+                        state = state + self._data.latest_data[self._json_key]['Values'][item]
             elif self._device == 'powerflow':
                 # Read data
                 if self._data.latest_data[self._json_key]:
                     state = self._data.latest_data[self._json_key]
 
         # convert and round the result
-        if isinstance(state, Number):
-            if self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY":
-                if self._units == "MWh":
-                    self._state = round(state / 1000000, 1)
-                elif self._units == "kWh":
-                    self._state = round(state / 1000, 1)
-                else:
-                    self._state = round(state, 1)
-            elif self._json_key == "DAY_ENERGY":
+        if self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY":
+            if self._units == "MWh":
+                self._state = round(state / 1000000, 1)
+            elif self._units == "kWh":
                 self._state = round(state / 1000, 1)
             else:
                 self._state = round(state, 1)
+        elif self._json_key == "DAY_ENERGY":
+            self._state = round(state / 1000, 1)
+        else:
+            self._state = round(state, 1)
 
 class InverterData:
     """Handle Fronius API object and limit updates."""
