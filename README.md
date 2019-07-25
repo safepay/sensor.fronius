@@ -24,7 +24,7 @@ Fronius inverters shut down their API endpoints at night by default.
 
 This component will not poll the inverter from sunset to sunrise.
 
-This means that if you restart HA at night, you will get "-" for all sensors until the inverter is back online the next morning.
+This means that if you restart HA at night, you will get "-" for all sensors until the inverter is back online the next morning. If left runnings, the state of the sensors will remain unchanged from senset until the next sunrise.
 
 You can override these times with ``start_time`` and ``stop_time``.
 
