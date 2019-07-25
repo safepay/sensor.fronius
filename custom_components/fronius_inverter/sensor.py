@@ -40,23 +40,23 @@ UNIT_TYPES = ['Wh', 'kWh', 'MWh']
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=300)
 
-# Key: ['device', json_key', 'name', unit, icon]
+# Key: ['device', 'system', 'json_key', 'name', 'unit', 'convert units', 'icon']
 SENSOR_TYPES = {
-    'ac_power': ['inverter', 'PAC', 'AC Power', 'W', 'mdi:solar-power'],
-    'ac_current': ['inverter', 'IAC', 'AC Current', 'A', 'mdi:solar-power'],
-    'ac_voltage': ['inverter', 'UAC', 'AC Voltage', 'V', 'mdi:solar-power'],
-    'ac_frequency': ['inverter', 'FAC', 'AC Frequency', 'Hz', 'mdi:solar-power'],
-    'dc_current': ['inverter', 'IDC', 'DC Current', 'A', 'mdi:solar-power'],
-    'dc_voltage': ['inverter', 'UDC', 'DC Voltage', 'V', 'mdi:solar-power'],
-    'day_energy': ['inverter', 'DAY_ENERGY', 'Day Energy', 'kWh', 'mdi:solar-power'],
-    'year_energy': ['inverter', 'YEAR_ENERGY', 'Year Energy', 'MWh', 'mdi:solar-power'],
-    'total_energy': ['inverter', 'TOTAL_ENERGY', 'Total Energy', 'MWh', 'mdi:solar-power'],
-    'grid_usage': ['powerflow', 'P_Grid', 'Grid Usage', 'W', 'mdi:solar-power'],
-    'house_load': ['powerflow', 'P_Load', 'House Load', 'W', 'mdi:solar-power'],
-    'panel_status': ['powerflow', 'P_PV', 'Panel Status', 'W', 'mdi:solar-panel']
+    'ac_power': ['inverter', True, 'PAC', 'AC Power', 'W', False, 'mdi:solar-power'],
+    'ac_current': ['inverter', False, 'IAC', 'AC Current', 'A', False, 'mdi:solar-power'],
+    'ac_voltage': ['inverter', False, 'UAC', 'AC Voltage', 'V', False, 'mdi:solar-power'],
+    'ac_frequency': ['inverter', False, 'FAC', 'AC Frequency', 'Hz', False, 'mdi:solar-power'],
+    'dc_current': ['inverter', False, 'IDC', 'DC Current', 'A', False, 'mdi:solar-power'],
+    'dc_voltage': ['inverter', False, 'UDC', 'DC Voltage', 'V', False, 'mdi:solar-power'],
+    'day_energy': ['inverter', True, 'DAY_ENERGY', 'Day Energy', 'kWh', False, 'mdi:solar-power'],
+    'year_energy': ['inverter', True, 'YEAR_ENERGY', 'Year Energy', 'MWh', True, 'mdi:solar-power'],
+    'total_energy': ['inverter', True, 'TOTAL_ENERGY', 'Total Energy', 'MWh', True, 'mdi:solar-power'],
+    'grid_usage': ['powerflow', False, 'P_Grid', 'Grid Usage', 'W', False, 'mdi:solar-power'],
+    'house_load': ['powerflow', False, 'P_Load', 'House Load', 'W', False, 'mdi:solar-power'],
+    'panel_status': ['powerflow', False, 'P_PV', 'Panel Status', 'W', False, 'mdi:solar-panel']
 }
 
-_SENSOR_TYPES_SYSTEM = {'ac_power', 'day_energy', 'year_energy', 'total_energy'}
+#_SENSOR_TYPES_SYSTEM = {'ac_power', 'day_energy', 'year_energy', 'total_energy'}
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_IP_ADDRESS): cv.string,
@@ -103,12 +103,16 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 
     dev = []
     for variable in config[CONF_MONITORED_CONDITIONS]:
-        if SENSOR_TYPES[variable][0] == "inverter":
-            if scope == 'System' and variable in _SENSOR_TYPES_SYSTEM:
+
+        device = SENSOR_TYPES[variable][0]
+        system = SENSOR_TYPES[variable][1]
+
+        if device == "inverter":
+            if scope == 'System' and system:
                 dev.append(FroniusSensor(inverter_data, name, variable, scope, units, device_id, powerflow, start_time, stop_time))
             elif  scope == 'Device':
                 dev.append(FroniusSensor(inverter_data, name, variable, scope, units, device_id, powerflow, start_time, stop_time))
-        elif SENSOR_TYPES[variable][0] == "powerflow" and powerflow:
+        elif device == "powerflow" and powerflow:
             dev.append(FroniusSensor(powerflow_data, name, variable, scope, units, device_id, powerflow, start_time, stop_time))
 
     add_entities(dev, True)
@@ -120,16 +124,17 @@ class FroniusSensor(Entity):
         """Initialize the sensor."""
         self._client = name
         self._device = SENSOR_TYPES[sensor_type][0]
-        self._json_key = SENSOR_TYPES[sensor_type][1]
-        self._name = SENSOR_TYPES[sensor_type][2]
+        self._json_key = SENSOR_TYPES[sensor_type][2]
+        self._name = SENSOR_TYPES[sensor_type][3]
         self._type = sensor_type
         self._state = None
         self._device_id = device_id
         self._scope = scope
         self._units = units
-        self._unit = SENSOR_TYPES[sensor_type][3]
+        self._unit = SENSOR_TYPES[sensor_type][4]
+        self._convert_units = SENSOR_TYPES[sensor_type][5]
         self._data = device_data
-        self._icon = SENSOR_TYPES[sensor_type][4]
+        self._icon = SENSOR_TYPES[sensor_type][6]
         self._powerflow = powerflow
         self._start_time = start_time
         self._stop_time = stop_time
@@ -147,7 +152,7 @@ class FroniusSensor(Entity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
-        if self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY":
+        if self._convert_units:
             return self._units
         else:
             return self._unit
