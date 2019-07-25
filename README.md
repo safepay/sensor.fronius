@@ -22,9 +22,11 @@ If you have multiple inverters, set ``scope: System`` as per the configuration b
 ### Handling Inverter Offline at Night
 Fronius inverters shut down their API endpoints at night by default.
 
-This component will set all values to 0 (Zero) during that time except for the Yearly and Lifetime totals.
+This component will not poll the inverter from sunset to sunrise.
 
 This means that if you restart HA at night, you will get zeros for all values and "-" for Yearly and Lifetime until the inverter is back online the next morning.
+
+You can override these times with ``start_time`` and ``stop_time``.
 
 ## Installation
 Copy the ``fronius_inverter`` folder in the custom_components directory into your own custom_components directory in your config directory of Home Assistant.
