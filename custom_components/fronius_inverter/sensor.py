@@ -19,10 +19,10 @@ from homeassistant.util import Throttle
 from homeassistant.util.dt import utcnow as dt_utcnow, as_local
 from homeassistant.helpers.sun import get_astral_event_date
 
-#_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
-#_POWERFLOW_URL = 'http://{}/solar_api/v1/GetPowerFlowRealtimeData.fcgi'
-_INVERTERRT = 'http://{}{}?DeviceId={}&DataCollection=CommonInverterData'
-_POWERFLOW_URL = 'http://{}PowerFlow'
+_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
+_POWERFLOW_URL = 'http://{}/solar_api/v1/GetPowerFlowRealtimeData.fcgi'
+#_INVERTERRT = 'http://{}{}?DeviceId={}&DataCollection=CommonInverterData'
+#_POWERFLOW_URL = 'http://{}PowerFlow'
 _LOGGER = logging.getLogger(__name__)
 
 ATTRIBUTION = "Fronius Inverter Data"
