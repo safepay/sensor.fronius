@@ -85,6 +85,8 @@ key | required | type | default | description
 ``units`` | no | string | ``kWh`` | The preferred units for Year and Total Energy from ``Wh, kWh, MWh``.
 ``device_id`` | no | string | ``1`` | The Device ID of your Fronius Inverter.
 ``scope`` | no | string | ``Device`` | Set to ``System`` if you have multiple inverters. This will return ``ac_power, daily_energy, year_energy`` and, ``total_energy`` only. Case-sensitive.
+``start_time`` | no | time | ``sunrise`` | Hours and minutes for the start of logging. E.g. ``'7:30'``
+``end_time`` | no | time | ``sunset`` | Hours and minutes for the end of logging. E.g. ``'18:00'``
 ``scan_interval`` | no | integer | ``300`` | Number of seconds between polls.
 ``monitored_conditions`` | no | list | All | List of monitored conditions from: ``ac_power, ac_current, ac_voltage, ac_frequency, dc_current, dc_energy, daily_energy, year_energy, total_energy``
 
