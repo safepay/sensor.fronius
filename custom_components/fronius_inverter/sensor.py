@@ -87,8 +87,6 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     stop_time = config.get(CONF_STOP_TIME)
 
     inverter_data = InverterData(ip_address, device_id, scope)
-    if powerflow:
-        powerflow_data = PowerflowData(ip_address)
 
     try:
         inverter_data.update()
@@ -97,6 +95,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         return
 
     if powerflow:
+        powerflow_data = PowerflowData(ip_address)
         try:
             powerflow_data.update()
         except ValueError as err:
@@ -203,15 +202,15 @@ class FroniusSensor(Entity):
         # convert and round the result
         if self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY":
             if self._units == "MWh":
-                self._state = round(state / 1000000, 1)
+                self._state = round(state / 1000000, 2)
             elif self._units == "kWh":
-                self._state = round(state / 1000, 1)
+                self._state = round(state / 1000, 2)
             else:
-                self._state = round(state, 1)
+                self._state = round(state, 2)
         elif self._json_key == "DAY_ENERGY":
-            self._state = round(state / 1000, 1)
+            self._state = round(state / 1000, 2)
         else:
-            self._state = round(state, 1)
+            self._state = round(state, 2)
 
         # Prevent these values going to zero if inverter is offline
         if (self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY") and state == 0:
