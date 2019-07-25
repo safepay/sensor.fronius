@@ -21,7 +21,7 @@ from homeassistant.helpers.sun import get_astral_event_date
 
 _INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
 _POWERFLOW_URL = 'http://{}/solar_api/v1/GetPowerFlowRealtimeData.fcgi'
-#_INVERTERRT = 'http://{}?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
+#_INVERTERRT = 'http://{}{}?DeviceId={}&DataCollection=CommonInverterData'
 #_POWERFLOW_URL = 'http://{}PowerFlow'
 _LOGGER = logging.getLogger(__name__)
 
@@ -224,8 +224,7 @@ class FroniusSensor(Entity):
                 hour=self._start_time.hour, minute=self._start_time.minute,
                 second=0)
         else:
-            sunrise = get_astral_event_date(self.hass, SUN_EVENT_SUNRISE,
-                                            now.date())
+            sunrise = get_astral_event_date(self.hass, SUN_EVENT_SUNRISE, now.date())
         return sunrise
 
     def find_stop_time(self, now):
@@ -235,7 +234,7 @@ class FroniusSensor(Entity):
                 hour=self._stop_time.hour, minute=self._stop_time.minute,
                 second=0)
         else:
-            sunset = get_astral_event_date(self.hass, 'sunset', now.date())
+            sunset = get_astral_event_date(self.hass, SUN_EVENT_SUNSET, now.date())
         return sunset
 
 class InverterData:
