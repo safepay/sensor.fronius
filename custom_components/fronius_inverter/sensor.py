@@ -7,7 +7,6 @@ import voluptuous as vol
 from requests.exceptions import (
     ConnectionError as ConnectError, HTTPError, Timeout)
 import json
-from numbers import Number
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.sensor import PLATFORM_SCHEMA
