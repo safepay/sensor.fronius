@@ -147,7 +147,7 @@ class FroniusSensor(Entity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
-        if self._unit == "MWh":
+        if self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY":
             return self._units
         else:
             return self._unit
