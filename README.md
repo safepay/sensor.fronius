@@ -7,6 +7,7 @@
 This component simplifies the integration of a Fronius inverter:
 * creates up to 12 individual sensors for easy display or use in automations
 * converts Wh to kWh
+* rounds values to 2 decimal places
 * converts yearly and total energy data to kWh or MWh (user-configurable)
 * optionally connects to PowerFlow devices for 3 additional sensors
 * optionally sums values if you have more than one inverter
