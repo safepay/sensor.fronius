@@ -1,9 +1,13 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs) [![fronius](https://img.shields.io/github/release/safepay/sensor.fronius.svg)](https://github.com/safepay/sensor.fronius) ![Maintenance](https://img.shields.io/maintenance/yes/2019.svg)
 
 ### Features:
-* Pulls data from one or more Fronius inverters
-* Creates sensors automatically or based on MONITORED_CONDITIONS
-* Simple default configuration
+This component simplifies the integration of a Fronius inverter:
+* creates up to 12 individual sensors for easy display or use in automations
+* converts Wh to kWh
+* converts yearly and total energy data to kWh or MWh (user-configurable)
+* optionally connects to PowerFlow devices for 3 additional sensors
+* optionally sums values if you have more than one inverter
+* pauses from sunset to sunrise to handle inverters going offline at night
 
 ### Minimal Configuration
 ```
