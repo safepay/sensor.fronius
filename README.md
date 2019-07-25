@@ -4,10 +4,13 @@
 
 
 # Fronius Sensor for Home Assistant
-
-This Fronius sensor creates up to 12 individual sensors in HA and converts Wh to kWh or MWh for easy display or use in automations.
-
-It works by reading data from Fronius inverters and, optionally, from PowerFlow devices.
+This component simplifies the integration of a Fronius inverter:
+* creates up to 12 individual sensors for easy display or use in automations
+* converts Wh to kWh
+* converts yearly and total energy data to kWh or MWh (user-configurable)
+* optionally connects to PowerFlow devices for 3 additional sensors
+* optionally sums values if you have more than one inverter
+* pauses from sunset to sunrise to handle inverters going offline at night
 
 ### URL's Utilised
 The Default URL called is ``http://ip_address/GetInverterRealtimeData.cgi?Scope=Device&DeviceId=1&DataCollection=CommonInverterData``
