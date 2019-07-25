@@ -178,10 +178,10 @@ class FroniusSensor(Entity):
         if start_time <= now <= stop_time:
             self._data.update()
             if not self._data:
-                _LOGGER.info("Didn't receive data from the inverter")
+                _LOGGER.error("Didn't receive data from the inverter")
                 return
         else:
-            _LOGGER.info("It's night time for the Fronius inverter")
+            _LOGGER.debug("It's night time for the Fronius inverter")
             return
 
         # Prevent errors when data not present at night but retain long term states
@@ -221,18 +221,16 @@ class FroniusSensor(Entity):
         """Return sunrise or start_time if given."""
         if self._start_time:
             sunrise = now.replace(
-                hour=self._start_time.hour, minute=self._start_time.minute,
-                second=0)
+                hour=self._start_time.hour, minute=self._start_time.minute, second=0)
         else:
             sunrise = get_astral_event_date(self.hass, SUN_EVENT_SUNRISE, now.date())
         return sunrise
 
     def find_stop_time(self, now):
-        """Return dusk or stop_time if given."""
+        """Return sunset or stop_time if given."""
         if self._stop_time:
             sunset = now.replace(
-                hour=self._stop_time.hour, minute=self._stop_time.minute,
-                second=0)
+                hour=self._stop_time.hour, minute=self._stop_time.minute, second=0)
         else:
             sunset = get_astral_event_date(self.hass, SUN_EVENT_SUNSET, now.date())
         return sunset
