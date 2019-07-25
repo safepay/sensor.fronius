@@ -19,10 +19,10 @@ from homeassistant.util import Throttle
 from homeassistant.util.dt import utcnow as dt_utcnow, as_local
 from homeassistant.helpers.sun import get_astral_event_date
 
-_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
-_POWERFLOW_URL = 'http://{}/solar_api/v1/GetPowerFlowRealtimeData.fcgi'
-#_INVERTERRT = 'http://{}{}?DeviceId={}&DataCollection=CommonInverterData'
-#_POWERFLOW_URL = 'http://{}PowerFlow'
+#_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
+#_POWERFLOW_URL = 'http://{}/solar_api/v1/GetPowerFlowRealtimeData.fcgi'
+_INVERTERRT = 'http://{}{}?DeviceId={}&DataCollection=CommonInverterData'
+_POWERFLOW_URL = 'http://{}PowerFlow'
 _LOGGER = logging.getLogger(__name__)
 
 ATTRIBUTION = "Fronius Inverter Data"
@@ -50,8 +50,8 @@ SENSOR_TYPES = {
     'dc_current': ['inverter', 'IDC', 'DC Current', 'A', 'mdi:solar-power'],
     'dc_voltage': ['inverter', 'UDC', 'DC Voltage', 'V', 'mdi:solar-power'],
     'day_energy': ['inverter', 'DAY_ENERGY', 'Day Energy', 'kWh', 'mdi:solar-power'],
-    'year_energy': ['inverter', 'YEAR_ENERGY', 'Year Energy', 'Wh', 'mdi:solar-power'],
-    'total_energy': ['inverter', 'TOTAL_ENERGY', 'Total Energy', 'Wh', 'mdi:solar-power'],
+    'year_energy': ['inverter', 'YEAR_ENERGY', 'Year Energy', 'MWh', 'mdi:solar-power'],
+    'total_energy': ['inverter', 'TOTAL_ENERGY', 'Total Energy', 'MWh', 'mdi:solar-power'],
     'grid_usage': ['powerflow', 'P_Grid', 'Grid Usage', 'W', 'mdi:solar-power'],
     'house_load': ['powerflow', 'P_Load', 'House Load', 'W', 'mdi:solar-power'],
     'panel_status': ['powerflow', 'P_PV', 'Panel Status', 'W', 'mdi:solar-panel']
@@ -65,7 +65,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_NAME, default='Fronius'): cv.string,
     vol.Optional(CONF_SCOPE, default='Device'):
         vol.In(SCOPE_TYPES),
-    vol.Optional(CONF_UNITS, default='kWh'):
+    vol.Optional(CONF_UNITS, default='MWh'):
         vol.In(UNIT_TYPES),
     vol.Optional(CONF_START_TIME): cv.time,
     vol.Optional(CONF_STOP_TIME): cv.time,
@@ -148,7 +148,7 @@ class FroniusSensor(Entity):
     @property
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
-        if self._unit == "Wh":
+        if self._unit == "MWh":
             return self._units
         else:
             return self._unit
