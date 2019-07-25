@@ -12,10 +12,12 @@ from numbers import Number
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
-    CONF_MONITORED_CONDITIONS, CONF_NAME, ATTR_ATTRIBUTION
+    CONF_MONITORED_CONDITIONS, CONF_NAME, ATTR_ATTRIBUTION, SUN_EVENT_SUNRISE, SUN_EVENT_SUNSET
     )
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
+from homeassistant.util.dt import utcnow as dt_utcnow, as_local
+from homeassistant.helpers.sun import get_astral_event_date
 
 _INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
 _POWERFLOW_URL = 'http://{}/solar_api/v1/GetPowerFlowRealtimeData.fcgi'
@@ -31,6 +33,8 @@ CONF_DEVICE_ID = 'device_id'
 CONF_SCOPE = 'scope'
 CONF_UNITS = 'units'
 CONF_POWERFLOW = 'powerflow'
+CONF_START_TIME = 'start_time'
+CONF_STOP_TIME = 'stop_time'
 
 SCOPE_TYPES = ['Device', 'System']
 UNIT_TYPES = ['Wh', 'kWh', 'MWh']
@@ -63,6 +67,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
         vol.In(SCOPE_TYPES),
     vol.Optional(CONF_UNITS, default='kWh'):
         vol.In(UNIT_TYPES),
+    vol.Optional(CONF_START_TIME): cv.time,
+    vol.Optional(CONF_STOP_TIME): cv.time,
     vol.Optional(CONF_POWERFLOW, default=False): cv.boolean,
     vol.Optional(CONF_MONITORED_CONDITIONS, default=list(SENSOR_TYPES)):
         vol.All(cv.ensure_list, [vol.In(SENSOR_TYPES)]),
@@ -77,6 +83,8 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     units = config.get(CONF_UNITS)
     name = config.get(CONF_NAME)
     powerflow = config.get(CONF_POWERFLOW)
+    start_time = config.get(CONF_START_TIME)
+    stop_time = config.get(CONF_STOP_TIME)
 
     inverter_data = InverterData(ip_address, device_id, scope)
     if powerflow:
@@ -99,18 +107,18 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     for variable in config[CONF_MONITORED_CONDITIONS]:
         if SENSOR_TYPES[variable][0] == "inverter":
             if scope == 'System' and variable in _SENSOR_TYPES_SYSTEM:
-                dev.append(FroniusSensor(inverter_data, name, variable, scope, units, device_id))
+                dev.append(FroniusSensor(inverter_data, name, variable, scope, units, device_id, powerflow, start_time, stop_time))
             elif  scope == 'Device':
-                dev.append(FroniusSensor(inverter_data, name, variable, scope, units, device_id))
+                dev.append(FroniusSensor(inverter_data, name, variable, scope, units, device_id, powerflow, start_time, stop_time))
         elif SENSOR_TYPES[variable][0] == "powerflow" and powerflow:
-            dev.append(FroniusSensor(powerflow_data, name, variable, scope, units, device_id, powerflow))
+            dev.append(FroniusSensor(powerflow_data, name, variable, scope, units, device_id, powerflow, start_time, stop_time))
 
     add_entities(dev, True)
 
 class FroniusSensor(Entity):
     """Implementation of the Fronius inverter sensor."""
 
-    def __init__(self, device_data, name, sensor_type, scope, units, device_id, powerflow=False):
+    def __init__(self, device_data, name, sensor_type, scope, units, device_id, powerflow, start_time, stop_time):
         """Initialize the sensor."""
         self._client = name
         self._device = SENSOR_TYPES[sensor_type][0]
@@ -125,6 +133,8 @@ class FroniusSensor(Entity):
         self._data = device_data
         self._icon = SENSOR_TYPES[sensor_type][4]
         self._powerflow = powerflow
+        self._start_time = start_time
+        self._stop_time = stop_time
 
     @property
     def name(self):
@@ -155,11 +165,23 @@ class FroniusSensor(Entity):
         """Icon to use in the frontend, if any."""
         return self._icon
 
-    def update(self):
+    def update(self, utcnow=None):
         """Get the latest data from inverter and update the states."""
-        self._data.update()
-        if not self._data:
-            _LOGGER.info("Didn't receive data from the inverter")
+
+        if utcnow is None:
+            utcnow = dt_utcnow()
+        now = as_local(utcnow)
+
+        start_time = self.find_start_time(now)
+        stop_time = self.find_stop_time(now)
+
+        if start_time <= now <= stop_time:
+            self._data.update()
+            if not self._data:
+                _LOGGER.info("Didn't receive data from the inverter")
+                return
+        else:
+            _LOGGER.info("It's night time for the Fronius inverter")
             return
 
         # Prevent errors when data not present at night but retain long term states
@@ -190,6 +212,31 @@ class FroniusSensor(Entity):
             self._state = round(state / 1000, 1)
         else:
             self._state = round(state, 1)
+
+        # Prevent these values going to zero if inverter is offline
+        if (self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY") and state == 0:
+            self._state = None
+
+    def find_start_time(self, now):
+        """Return sunrise or start_time if given."""
+        if self._start_time:
+            sunrise = now.replace(
+                hour=self._start_time.hour, minute=self._start_time.minute,
+                second=0)
+        else:
+            sunrise = get_astral_event_date(self.hass, SUN_EVENT_SUNRISE,
+                                            now.date())
+        return sunrise
+
+    def find_stop_time(self, now):
+        """Return dusk or stop_time if given."""
+        if self._stop_time:
+            sunset = now.replace(
+                hour=self._stop_time.hour, minute=self._stop_time.minute,
+                second=0)
+        else:
+            sunset = get_astral_event_date(self.hass, 'sunset', now.date())
+        return sunset
 
 class InverterData:
     """Handle Fronius API object and limit updates."""
@@ -252,4 +299,3 @@ class PowerflowData:
         except (KeyError, ConnectError, HTTPError, Timeout, ValueError) as error:
             _LOGGER.error("Unable to connect to Fronius: %s", error)
             self._data = None
-
