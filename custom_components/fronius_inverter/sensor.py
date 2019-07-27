@@ -71,7 +71,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
         vol.All(cv.ensure_list, [vol.In(SENSOR_TYPES)]),
 })
 
-def setup_platform(hass, config, add_entities, discovery_info=None):
+async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the Fronius inverter sensor."""
 
     ip_address = config[CONF_IP_ADDRESS]
@@ -86,7 +86,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     inverter_data = InverterData(ip_address, device_id, scope)
 
     try:
-        inverter_data.update()
+        await inverter_data.async_update()
     except ValueError as err:
         _LOGGER.error("Received error from Fronius inverter: %s", err)
         return
@@ -94,7 +94,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     if powerflow:
         powerflow_data = PowerflowData(ip_address)
         try:
-            powerflow_data.update()
+            await powerflow_data.async_update()
         except ValueError as err:
             _LOGGER.error("Received error from Fronius Powerflow: %s", err)
             return
@@ -113,7 +113,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         elif device == "powerflow" and powerflow:
             dev.append(FroniusSensor(powerflow_data, name, variable, scope, units, device_id, powerflow, start_time, stop_time))
 
-    add_entities(dev, True)
+    async_add_entities(dev, True)
 
 class FroniusSensor(Entity):
     """Implementation of the Fronius inverter sensor."""
@@ -166,7 +166,7 @@ class FroniusSensor(Entity):
         """Icon to use in the frontend, if any."""
         return self._icon
 
-    def update(self, utcnow=None):
+    async def async_update(self, utcnow=None):
         """Get the latest data from inverter and update the states."""
 
         if utcnow is None:
@@ -178,7 +178,7 @@ class FroniusSensor(Entity):
 
         # Prevent errors when data not present at night but retain long term states
         if start_time <= now <= stop_time:
-            self._data.update()
+            await self._data.async_update()
             if not self._data:
                 _LOGGER.error("Didn't receive data from the inverter")
                 return
@@ -259,7 +259,7 @@ class InverterData:
         return None
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    def update(self):
+    async def async_update(self):
         """Get the latest data from inverter."""
         try:
             result = requests.get(self._build_url(), timeout=10).json()
@@ -289,7 +289,7 @@ class PowerflowData:
         return None
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    def update(self):
+    async def async_update(self):
         """Get the latest data from inverter."""
         try:
             result = requests.get(self._build_url(), timeout=10).json()
