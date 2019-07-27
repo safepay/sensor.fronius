@@ -1,7 +1,7 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs) [![fronius](https://img.shields.io/github/release/safepay/sensor.fronius.svg)](https://github.com/safepay/sensor.fronius) ![Maintenance](https://img.shields.io/maintenance/yes/2019.svg)
 
 ### Features:
-This component simplifies the integration of a Fronius inverter:
+This component simplifies the integration of a Fronius inverter and optional PowerFlow:
 * creates up to 12 individual sensors for easy display or use in automations
 * converts Wh to kWh
 * converts yearly and total energy data to kWh or MWh (user-configurable)
