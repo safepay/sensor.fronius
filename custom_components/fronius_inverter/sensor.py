@@ -40,23 +40,21 @@ UNIT_TYPES = ['Wh', 'kWh', 'MWh']
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=300)
 
-# Key: ['device', 'system', 'json_key', 'name', 'unit', 'convert units', 'icon']
+# Key: ['device', 'system', 'json_key', 'name', 'unit', 'convert_units', 'icon']
 SENSOR_TYPES = {
+    'year_energy': ['inverter', True, 'YEAR_ENERGY', 'Year Energy', 'MWh', True, 'mdi:solar-power'],
+    'total_energy': ['inverter', True, 'TOTAL_ENERGY', 'Total Energy', 'MWh', True, 'mdi:solar-power'],
     'ac_power': ['inverter', True, 'PAC', 'AC Power', 'W', False, 'mdi:solar-power'],
+    'day_energy': ['inverter', True, 'DAY_ENERGY', 'Day Energy', 'kWh', False, 'mdi:solar-power'],
     'ac_current': ['inverter', False, 'IAC', 'AC Current', 'A', False, 'mdi:solar-power'],
     'ac_voltage': ['inverter', False, 'UAC', 'AC Voltage', 'V', False, 'mdi:solar-power'],
     'ac_frequency': ['inverter', False, 'FAC', 'AC Frequency', 'Hz', False, 'mdi:solar-power'],
     'dc_current': ['inverter', False, 'IDC', 'DC Current', 'A', False, 'mdi:solar-power'],
     'dc_voltage': ['inverter', False, 'UDC', 'DC Voltage', 'V', False, 'mdi:solar-power'],
-    'day_energy': ['inverter', True, 'DAY_ENERGY', 'Day Energy', 'kWh', False, 'mdi:solar-power'],
-    'year_energy': ['inverter', True, 'YEAR_ENERGY', 'Year Energy', 'MWh', True, 'mdi:solar-power'],
-    'total_energy': ['inverter', True, 'TOTAL_ENERGY', 'Total Energy', 'MWh', True, 'mdi:solar-power'],
     'grid_usage': ['powerflow', False, 'P_Grid', 'Grid Usage', 'W', False, 'mdi:solar-power'],
     'house_load': ['powerflow', False, 'P_Load', 'House Load', 'W', False, 'mdi:solar-power'],
     'panel_status': ['powerflow', False, 'P_PV', 'Panel Status', 'W', False, 'mdi:solar-panel']
 }
-
-#_SENSOR_TYPES_SYSTEM = {'ac_power', 'day_energy', 'year_energy', 'total_energy'}
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_IP_ADDRESS): cv.string,
@@ -178,6 +176,7 @@ class FroniusSensor(Entity):
         start_time = self.find_start_time(now)
         stop_time = self.find_stop_time(now)
 
+        # Prevent errors when data not present at night but retain long term states
         if start_time <= now <= stop_time:
             self._data.update()
             if not self._data:
@@ -187,7 +186,6 @@ class FroniusSensor(Entity):
             _LOGGER.debug("It's night time for the Fronius inverter")
             return
 
-        # Prevent errors when data not present at night but retain long term states
         state = 0
 
         if self._data.latest_data and (self._json_key in self._data.latest_data):
