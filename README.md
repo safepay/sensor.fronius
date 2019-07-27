@@ -57,8 +57,6 @@ sensor:
 sensor:
   - platform: fronius_inverter
     ip_address: LOCAL_IP_FOR_FRONIUS
-    device_id: 1
-    powerflow: True
     monitored_conditions:
       - ac_power
       - day_energy
