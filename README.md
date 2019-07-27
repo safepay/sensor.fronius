@@ -4,7 +4,7 @@
 
 
 # Fronius Sensor for Home Assistant
-This component simplifies the integration of a Fronius inverter:
+This component simplifies the integration of a Fronius inverter and optional PowerFlow:
 * creates up to 12 individual sensors for easy display or use in automations
 * converts Wh to kWh
 * rounds values to 2 decimal places
