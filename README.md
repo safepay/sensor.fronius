@@ -18,11 +18,6 @@ The Default URL called is ``http://ip_address/GetInverterRealtimeData.cgi?Scope=
 
 The optional PowerFlow URL is ``http://ip_address/solar_api/v1/GetPowerFlowRealtimeData.fcgi``
 
-### Getting Your System to Report
-If your inverter has a different id than "1" then pass your device ID as "device_id" as per the configuration.
-
-If you have multiple inverters, set ``scope: System`` as per the configuration below to return summed values for all inverters.
-
 ### Handling Inverter Offline at Night
 Fronius inverters shut down their API endpoints at night by default.
 
