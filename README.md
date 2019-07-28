@@ -59,8 +59,8 @@ sensor:
 ```
 ### Configuration Variables
 
-key | required | type | default | description
---- | -------- | ---- | ------- | -----------
+variable | required | type | default | description
+-------- | -------- | ---- | ------- | -----------
 ``ip_address`` | yes | string | | The local IP address of your Fronius Inverter.
 ``name`` | no | string | ``Fronius`` | The preferred name of your Fronius Inverter.
 ``powerflow`` | no | boolean | ``False`` | Set to ``True`` if you have a PowerFlow meter to add ``grid_usage``, ``house_load`` and ``panel_status`` sensors.
