@@ -70,6 +70,6 @@ variable | required | type | default | description
 ``start_time`` | no | time | ``sunrise`` | Hours and minutes for the start of logging. E.g. ``'7:30'``
 ``end_time`` | no | time | ``sunset`` | Hours and minutes for the end of logging. E.g. ``'18:00'``
 ``scan_interval`` | no | integer | ``60`` | Minimum configurable number of seconds between polls.
-``monitored_conditions`` | no | list | All | List of monitored conditions from: ``ac_power``, ``ac_current``, ``ac_voltage``, ``ac_frequency``, ``dc_current``, ``dc_energy``, ``daily_energy``, `year_energy``, ``total_energy``
+``monitored_conditions`` | no | list | All | List of monitored conditions from: ``ac_power``, ``ac_current``, ``ac_voltage``, ``ac_frequency``, ``dc_current``, ``dc_energy``, ``daily_energy``, ``year_energy``, ``total_energy``
 
 
