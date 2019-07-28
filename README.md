@@ -18,7 +18,7 @@ The Default URL called is ``http://ip_address/GetInverterRealtimeData.cgi?Scope=
 
 The optional PowerFlow URL is ``http://ip_address/solar_api/v1/GetPowerFlowRealtimeData.fcgi``
 
-## Installation
+### Installation
 Copy the ``fronius_inverter`` folder in the custom_components directory into your own custom_components directory in your config directory of Home Assistant.
 
 E.g.:
@@ -30,7 +30,7 @@ E.g.:
 
 Be sure to pull raw data from GitHub or use [HACS](https://custom-components.github.io/hacs/)
 
-## Configuration
+### Configuration
 ```
 # Minimal configuration.yaml entry:
 sensor:
@@ -57,7 +57,7 @@ sensor:
     ip_address: LOCAL_IP_FOR_FRONIUS
     scope: System
 ```
-### CONFIGURATION VARIABLES
+### Configuration Variables
 
 key | required | type | default | description
 --- | -------- | ---- | ------- | -----------
