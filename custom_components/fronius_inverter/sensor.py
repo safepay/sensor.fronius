@@ -177,7 +177,7 @@ class FroniusSensor(Entity):
         stop_time = self.find_stop_time(now)
 
         # Prevent errors when data not present at night but retain long term states
-        if start_time <= now <= stop_time:
+        if start_time <= now <= stop_time or self._device == 'powerflow':
             await self._data.async_update()
             if not self._data:
                 _LOGGER.error("Didn't receive data from the inverter")
