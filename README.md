@@ -31,14 +31,14 @@ E.g.:
 Be sure to pull raw data from GitHub or use [HACS](https://custom-components.github.io/hacs/)
 
 ### Configuration
-```
+```yaml
 # Minimal configuration.yaml entry:
 sensor:
   - platform: fronius_inverter
     ip_address: LOCAL_IP_FOR_FRONIUS
 ```
 
-```
+```yaml
 # Example configuration.yaml entry where you can specify the sensors you want:
 sensor:
   - platform: fronius_inverter
@@ -50,7 +50,7 @@ sensor:
       - total_energy
 ```
 
-```
+```yaml
 # Example configuration.yaml entry where you have more than one inverter:
 sensor:
   - platform: fronius_inverter
