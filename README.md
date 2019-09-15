@@ -74,3 +74,22 @@ variable | required | type | default | description
 ``monitored_conditions`` | no | list | All | List of monitored conditions from: ``ac_power``, ``ac_current``, ``ac_voltage``, ``ac_frequency``, ``dc_current``, ``dc_energy``, ``daily_energy``, ``year_energy``, ``total_energy``
 
 
+### Custom Power Wheel Card (if using a Powerflow)
+
+Follow the instructions for installation on [Github](https://github.com/gurbyz/power-wheel-card/tree/master)
+
+Add the following to the top of your Lovelace config in the Raw Config Editor:
+```yaml
+resources:
+  - type: module
+    url: /local/custom_ui/power-wheel-card.js?v=1
+```
+Then add and configure a basic custom  card:
+```yaml
+type: 'custom:power-wheel-card'
+title: Solar Power
+production_is_positive: false
+solar_power_entity: sensor.fronius_panel_status
+grid_power_entity: sensor.fronius_grid_usage
+home_energy_entity: sensor.fronius_house_load
+```
