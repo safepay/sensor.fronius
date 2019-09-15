@@ -12,7 +12,7 @@ This component simplifies the integration of a Fronius inverter and optional Pow
 * optionally connects to PowerFlow devices for 3 additional sensors
 * optionally sums values if you have more than one inverter
 * pauses from sunset to sunrise to handle inverter logging going offline at night
-* compatible with the custom [Power Wheel Card](https://github.com/gurbyz/power-wheel-card/tree/master)
+* compatible with the custom [Power Wheel Card](https://github.com/gurbyz/power-wheel-card/tree/master) if using PowerFlow
 
 ### URL's Utilised
 The Default URL called is ``http://ip_address/GetInverterRealtimeData.cgi?Scope=Device&DeviceId=1&DataCollection=CommonInverterData``
