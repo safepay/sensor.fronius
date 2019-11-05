@@ -64,7 +64,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
         vol.In(SCOPE_TYPES),
     vol.Optional(CONF_UNITS, default='MWh'):
         vol.In(UNIT_TYPES),
-    vol.Optional(CONF_START_TIME): cv.time,
+    vol.Optional(CONF_START_TIME,): cv.time,
     vol.Optional(CONF_STOP_TIME): cv.time,
     vol.Optional(CONF_POWERFLOW, default=False): cv.boolean,
     vol.Optional(CONF_MONITORED_CONDITIONS, default=list(SENSOR_TYPES)):
@@ -99,12 +99,17 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             _LOGGER.error("Received error from Fronius Powerflow: %s", err)
             return
 
+
+
     dev = []
     for variable in config[CONF_MONITORED_CONDITIONS]:
 
         device = SENSOR_TYPES[variable][0]
         system = SENSOR_TYPES[variable][1]
 
+        sensor = "sensor." + name + "_" + SENSOR_TYPES[variable][3]
+        state = hass.states.get(sensor)
+    
         if device == "inverter":
             if scope == 'System' and system:
                 dev.append(FroniusSensor(inverter_data, name, variable, scope, units, device_id, powerflow, start_time, stop_time))
@@ -169,24 +174,11 @@ class FroniusSensor(Entity):
     async def async_update(self, utcnow=None):
         """Get the latest data from inverter and update the states."""
 
-        if utcnow is None:
-            utcnow = dt_utcnow()
-        now = as_local(utcnow)
-
-        start_time = self.find_start_time(now)
-        stop_time = self.find_stop_time(now)
-
         # Prevent errors when data not present at night but retain long term states
-        if start_time <= now <= stop_time or self._device == 'powerflow':
-            await self._data.async_update()
-            if not self._data:
-                _LOGGER.error("Didn't receive data from the inverter")
-                return
-        else:
-            _LOGGER.debug("It's night time for the Fronius inverter")
+        await self._data.async_update()
+        if not self._data:
+            _LOGGER.error("Didn't receive data from the inverter")
             return
-
-        state = 0
 
         if self._data.latest_data and (self._json_key in self._data.latest_data):
             if self._device == 'inverter':
@@ -213,28 +205,6 @@ class FroniusSensor(Entity):
             self._state = round(state / 1000, 2)
         else:
             self._state = round(state, 2)
-
-        # Prevent these values going to zero if inverter is offline
-        if (self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY") and state == 0:
-            self._state = None
-
-    def find_start_time(self, now):
-        """Return sunrise or start_time if given."""
-        if self._start_time:
-            sunrise = now.replace(
-                hour=self._start_time.hour, minute=self._start_time.minute, second=0)
-        else:
-            sunrise = get_astral_event_date(self.hass, SUN_EVENT_SUNRISE, now.date())
-        return sunrise
-
-    def find_stop_time(self, now):
-        """Return sunset or stop_time if given."""
-        if self._stop_time:
-            sunset = now.replace(
-                hour=self._stop_time.hour, minute=self._stop_time.minute, second=0)
-        else:
-            sunset = get_astral_event_date(self.hass, SUN_EVENT_SUNSET, now.date())
-        return sunset
 
 class InverterData:
     """Handle Fronius API object and limit updates."""
