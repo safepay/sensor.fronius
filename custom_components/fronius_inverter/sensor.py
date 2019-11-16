@@ -11,12 +11,10 @@ import json
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
-    CONF_MONITORED_CONDITIONS, CONF_NAME, ATTR_ATTRIBUTION, SUN_EVENT_SUNRISE, SUN_EVENT_SUNSET
+    CONF_MONITORED_CONDITIONS, CONF_NAME, ATTR_ATTRIBUTION
     )
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
-from homeassistant.util.dt import utcnow as dt_utcnow, as_local
-from homeassistant.helpers.sun import get_astral_event_date
 
 _INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
 _POWERFLOW_URL = 'http://{}/solar_api/v1/GetPowerFlowRealtimeData.fcgi'
@@ -31,29 +29,29 @@ CONF_IP_ADDRESS = 'ip_address'
 CONF_DEVICE_ID = 'device_id'
 CONF_SCOPE = 'scope'
 CONF_UNITS = 'units'
+CONF_POWER_UNITS = 'power_units'
 CONF_POWERFLOW = 'powerflow'
-CONF_START_TIME = 'start_time'
-CONF_STOP_TIME = 'stop_time'
 
 SCOPE_TYPES = ['Device', 'System']
 UNIT_TYPES = ['Wh', 'kWh', 'MWh']
+POWER_UNIT_TYPES = ['W', 'kW', 'MW']
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
 # Key: ['device', 'system', 'json_key', 'name', 'unit', 'convert_units', 'icon']
 SENSOR_TYPES = {
-    'year_energy': ['inverter', True, 'YEAR_ENERGY', 'Year Energy', 'MWh', True, 'mdi:solar-power'],
-    'total_energy': ['inverter', True, 'TOTAL_ENERGY', 'Total Energy', 'MWh', True, 'mdi:solar-power'],
-    'ac_power': ['inverter', True, 'PAC', 'AC Power', 'W', False, 'mdi:solar-power'],
+    'year_energy': ['inverter', True, 'YEAR_ENERGY', 'Year Energy', 'MWh', 'energy', 'mdi:solar-power'],
+    'total_energy': ['inverter', True, 'TOTAL_ENERGY', 'Total Energy', 'MWh', 'energy', 'mdi:solar-power'],
+    'ac_power': ['inverter', True, 'PAC', 'AC Power', 'W', 'power', 'mdi:solar-power'],
     'day_energy': ['inverter', True, 'DAY_ENERGY', 'Day Energy', 'kWh', False, 'mdi:solar-power'],
     'ac_current': ['inverter', False, 'IAC', 'AC Current', 'A', False, 'mdi:solar-power'],
     'ac_voltage': ['inverter', False, 'UAC', 'AC Voltage', 'V', False, 'mdi:solar-power'],
     'ac_frequency': ['inverter', False, 'FAC', 'AC Frequency', 'Hz', False, 'mdi:solar-power'],
     'dc_current': ['inverter', False, 'IDC', 'DC Current', 'A', False, 'mdi:solar-power'],
     'dc_voltage': ['inverter', False, 'UDC', 'DC Voltage', 'V', False, 'mdi:solar-power'],
-    'grid_usage': ['powerflow', False, 'P_Grid', 'Grid Usage', 'W', False, 'mdi:solar-power'],
-    'house_load': ['powerflow', False, 'P_Load', 'House Load', 'W', False, 'mdi:solar-power'],
-    'panel_status': ['powerflow', False, 'P_PV', 'Panel Status', 'W', False, 'mdi:solar-panel']
+    'grid_usage': ['powerflow', False, 'P_Grid', 'Grid Usage', 'W', 'power', 'mdi:solar-power'],
+    'house_load': ['powerflow', False, 'P_Load', 'House Load', 'W', 'power', 'mdi:solar-power'],
+    'panel_status': ['powerflow', False, 'P_PV', 'Panel Status', 'W', 'power', 'mdi:solar-panel']
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -64,8 +62,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
         vol.In(SCOPE_TYPES),
     vol.Optional(CONF_UNITS, default='MWh'):
         vol.In(UNIT_TYPES),
-    vol.Optional(CONF_START_TIME,): cv.time,
-    vol.Optional(CONF_STOP_TIME): cv.time,
+    vol.Optional(CONF_POWER_UNITS, default='W'):
+        vol.In(POWER_UNIT_TYPES),
     vol.Optional(CONF_POWERFLOW, default=False): cv.boolean,
     vol.Optional(CONF_MONITORED_CONDITIONS, default=list(SENSOR_TYPES)):
         vol.All(cv.ensure_list, [vol.In(SENSOR_TYPES)]),
@@ -78,10 +76,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     device_id = config.get(CONF_DEVICE_ID)
     scope = config.get(CONF_SCOPE)
     units = config.get(CONF_UNITS)
+    power_units = config.get(CONF_POWER_UNITS)
     name = config.get(CONF_NAME)
     powerflow = config.get(CONF_POWERFLOW)
-    start_time = config.get(CONF_START_TIME)
-    stop_time = config.get(CONF_STOP_TIME)
 
     inverter_data = InverterData(ip_address, device_id, scope)
 
@@ -106,24 +103,28 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
         device = SENSOR_TYPES[variable][0]
         system = SENSOR_TYPES[variable][1]
+        convert_units = SENSOR_TYPES[variable][5]
+
+        if convert_units == 'power':
+            units = power_units
 
         sensor = "sensor." + name + "_" + SENSOR_TYPES[variable][3]
         state = hass.states.get(sensor)
     
         if device == "inverter":
             if scope == 'System' and system:
-                dev.append(FroniusSensor(inverter_data, name, variable, scope, units, device_id, powerflow, start_time, stop_time))
+                dev.append(FroniusSensor(inverter_data, name, variable, scope, units, device_id, powerflow))
             elif  scope == 'Device':
-                dev.append(FroniusSensor(inverter_data, name, variable, scope, units, device_id, powerflow, start_time, stop_time))
+                dev.append(FroniusSensor(inverter_data, name, variable, scope, units, device_id, powerflow))
         elif device == "powerflow" and powerflow:
-            dev.append(FroniusSensor(powerflow_data, name, variable, scope, units, device_id, powerflow, start_time, stop_time))
+            dev.append(FroniusSensor(powerflow_data, name, variable, scope, units, device_id, powerflow))
 
     async_add_entities(dev, True)
 
 class FroniusSensor(Entity):
     """Implementation of the Fronius inverter sensor."""
 
-    def __init__(self, device_data, name, sensor_type, scope, units, device_id, powerflow, start_time, stop_time):
+    def __init__(self, device_data, name, sensor_type, scope, units, device_id, powerflow):
         """Initialize the sensor."""
         self._client = name
         self._device = SENSOR_TYPES[sensor_type][0]
@@ -139,8 +140,6 @@ class FroniusSensor(Entity):
         self._data = device_data
         self._icon = SENSOR_TYPES[sensor_type][6]
         self._powerflow = powerflow
-        self._start_time = start_time
-        self._stop_time = stop_time
 
     @property
     def name(self):
@@ -194,10 +193,17 @@ class FroniusSensor(Entity):
                     state = self._data.latest_data[self._json_key]
 
         # convert and round the result
-        if self._json_key == "YEAR_ENERGY" or self._json_key == "TOTAL_ENERGY":
+        if self._convert_units == "energy":
             if self._units == "MWh":
                 self._state = round(state / 1000000, 2)
             elif self._units == "kWh":
+                self._state = round(state / 1000, 2)
+            else:
+                self._state = round(state, 2)
+        if self._convert_units == "power":
+            if self._units == "MW":
+                self._state = round(state / 1000000, 2)
+            elif self._units == "kW":
                 self._state = round(state / 1000, 2)
             else:
                 self._state = round(state, 2)
