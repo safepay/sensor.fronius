@@ -85,7 +85,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     try:
         await inverter_data.async_update()
     except ValueError as err:
-        _LOGGER.error("Received error from Fronius inverter: %s", err)
+        _LOGGER.error("Received data error from Fronius inverter: %s", err)
         return
 
     if powerflow:
@@ -93,7 +93,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         try:
             await powerflow_data.async_update()
         except ValueError as err:
-            _LOGGER.error("Received error from Fronius Powerflow: %s", err)
+            _LOGGER.error("Received data error from Fronius Powerflow: %s", err)
             return
 
 
@@ -240,7 +240,7 @@ class InverterData:
         try:
             result = requests.get(self._build_url(), timeout=10).json()
             self._data = result['Body']['Data']
-        except (KeyError, ConnectError, HTTPError, Timeout, ValueError) as error:
+        except (KeyError, ConnectionError, HTTPError, Timeout, ValueError) as error:
             _LOGGER.error("Unable to connect to Fronius: %s", error)
             self._data = None
 
@@ -270,6 +270,6 @@ class PowerflowData:
         try:
             result = requests.get(self._build_url(), timeout=10).json()
             self._data = result['Body']['Data']['Site']
-        except (KeyError, ConnectError, HTTPError, Timeout, ValueError) as error:
-            _LOGGER.error("Unable to connect to Fronius: %s", error)
+        except (KeyError, ConnectionError, HTTPError, Timeout, ValueError) as error:
+            _LOGGER.error("Unable to connect to Powerflow: %s", error)
             self._data = None
