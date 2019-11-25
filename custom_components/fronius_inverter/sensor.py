@@ -4,8 +4,6 @@ from datetime import timedelta
 
 import requests
 import voluptuous as vol
-from requests.exceptions import (
-    ConnectionError as ConnectError, HTTPError, Timeout)
 import json
 
 import homeassistant.helpers.config_validation as cv
@@ -179,7 +177,9 @@ class FroniusSensor(Entity):
             _LOGGER.error("Didn't receive data from the inverter")
             return
 
+        state = None
         if self._data.latest_data and (self._json_key in self._data.latest_data):
+            _LOGGER.debug("Device: {}".format(self._device))
             if self._device == 'inverter':
                 if self._scope == 'Device':
                     # Read data
@@ -191,26 +191,28 @@ class FroniusSensor(Entity):
                 # Read data
                 if self._data.latest_data[self._json_key]:
                     state = self._data.latest_data[self._json_key]
+            _LOGGER.debug("State: {}".format(state))
 
         # convert and round the result
-        if self._convert_units == "energy":
-            if self._units == "MWh":
-                self._state = round(state / 1000000, 2)
-            elif self._units == "kWh":
+        if state is not None:
+            if self._convert_units == "energy":
+                if self._units == "MWh":
+                    self._state = round(state / 1000000, 2)
+                elif self._units == "kWh":
+                    self._state = round(state / 1000, 2)
+                else:
+                    self._state = round(state, 2)
+            if self._convert_units == "power":
+                if self._units == "MW":
+                    self._state = round(state / 1000000, 2)
+                elif self._units == "kW":
+                    self._state = round(state / 1000, 2)
+                else:
+                    self._state = round(state, 2)
+            elif self._json_key == "DAY_ENERGY":
                 self._state = round(state / 1000, 2)
             else:
                 self._state = round(state, 2)
-        if self._convert_units == "power":
-            if self._units == "MW":
-                self._state = round(state / 1000000, 2)
-            elif self._units == "kW":
-                self._state = round(state / 1000, 2)
-            else:
-                self._state = round(state, 2)
-        elif self._json_key == "DAY_ENERGY":
-            self._state = round(state / 1000, 2)
-        else:
-            self._state = round(state, 2)
 
 class InverterData:
     """Handle Fronius API object and limit updates."""
@@ -240,7 +242,7 @@ class InverterData:
         try:
             result = requests.get(self._build_url(), timeout=10).json()
             self._data = result['Body']['Data']
-        except (KeyError, ConnectionError, HTTPError, Timeout, ValueError) as error:
+        except (requests.exceptions.RequestException) as error:
             _LOGGER.error("Unable to connect to Fronius: %s", error)
             self._data = None
 
@@ -270,6 +272,6 @@ class PowerflowData:
         try:
             result = requests.get(self._build_url(), timeout=10).json()
             self._data = result['Body']['Data']['Site']
-        except (KeyError, ConnectionError, HTTPError, Timeout, ValueError) as error:
+        except (requests.exceptions.RequestException) as error:
             _LOGGER.error("Unable to connect to Powerflow: %s", error)
             self._data = None
