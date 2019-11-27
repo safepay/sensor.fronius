@@ -4,8 +4,6 @@ from datetime import timedelta
 
 import requests
 import voluptuous as vol
-from requests.exceptions import (
-    ConnectionError as ConnectError, HTTPError, Timeout)
 import json
 
 import homeassistant.helpers.config_validation as cv
@@ -181,6 +179,7 @@ class FroniusSensor(Entity):
 
         state = None
         if self._data.latest_data and (self._json_key in self._data.latest_data):
+            _LOGGER.debug("Device: {}".format(self._device))
             if self._device == 'inverter':
                 if self._scope == 'Device':
                     # Read data
@@ -214,6 +213,8 @@ class FroniusSensor(Entity):
                 self._state = round(state / 1000, 2)
             else:
                 self._state = round(state, 2)
+        else:
+            self._state = 0
 
 class InverterData:
     """Handle Fronius API object and limit updates."""
