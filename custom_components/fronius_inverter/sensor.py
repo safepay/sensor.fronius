@@ -213,6 +213,8 @@ class FroniusSensor(Entity):
                 self._state = round(state / 1000, 2)
             else:
                 self._state = round(state, 2)
+        else:
+            self._state = 0
 
 class InverterData:
     """Handle Fronius API object and limit updates."""
