@@ -41,7 +41,7 @@ SENSOR_TYPES = {
     'year_energy': ['inverter', True, 'YEAR_ENERGY', 'Year Energy', 'MWh', 'energy', 'mdi:solar-power'],
     'total_energy': ['inverter', True, 'TOTAL_ENERGY', 'Total Energy', 'MWh', 'energy', 'mdi:solar-power'],
     'ac_power': ['inverter', True, 'PAC', 'AC Power', 'W', 'power', 'mdi:solar-power'],
-    'day_energy': ['inverter', True, 'DAY_ENERGY', 'Day Energy', 'kWh', False, 'mdi:solar-power'],
+    'day_energy': ['inverter', True, 'DAY_ENERGY', 'Day Energy', 'kWh', 'energy', 'mdi:solar-power'],
     'ac_current': ['inverter', False, 'IAC', 'AC Current', 'A', False, 'mdi:solar-power'],
     'ac_voltage': ['inverter', False, 'UAC', 'AC Voltage', 'V', False, 'mdi:solar-power'],
     'ac_frequency': ['inverter', False, 'FAC', 'AC Frequency', 'Hz', False, 'mdi:solar-power'],
@@ -101,20 +101,23 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
         device = SENSOR_TYPES[variable][0]
         system = SENSOR_TYPES[variable][1]
+        sensor_units = SENSOR_TYPES[variable][4]
         convert_units = SENSOR_TYPES[variable][5]
 
         if convert_units == 'power':
-            units = power_units
+            sensor_units = power_units
+        elif convert_units == 'energy':
+            sensor_units = units
 
         sensor = "sensor." + name + "_" + SENSOR_TYPES[variable][3]
         state = hass.states.get(sensor)
     
         if device == "inverter":
-            if scope == 'System' and system:
-                dev.append(FroniusSensor(inverter_data, name, variable, scope, units, device_id, powerflow))
-            elif  scope == 'Device':
-                dev.append(FroniusSensor(inverter_data, name, variable, scope, units, device_id, powerflow))
+            _LOGGER.debug("Adding inverter sensor: {}, {}, {}, {}, {}, {}, {}, {}".format(inverter_data, name, variable, scope, sensor_units, device_id, powerflow, force_update))
+            dev.append(FroniusSensor(inverter_data, name, variable, scope, sensor_units, device_id, powerflow, force_update))
+            
         elif device == "powerflow" and powerflow:
+            _LOGGER.debug("Adding powerflow sensor: {}, {}, {}, {}, {}, {}, {}, {}".format(inverter_data, name, variable, scope, sensor_units, device_id, powerflow, force_update))
             dev.append(FroniusSensor(powerflow_data, name, variable, scope, units, device_id, powerflow))
 
     async_add_entities(dev, True)
@@ -196,25 +199,27 @@ class FroniusSensor(Entity):
         # convert and round the result
         if state is not None:
             if self._convert_units == "energy":
+                _LOGGER.debug("Converting energy ({}) to {}".format(state, self._units))
                 if self._units == "MWh":
                     self._state = round(state / 1000000, 2)
                 elif self._units == "kWh":
                     self._state = round(state / 1000, 2)
                 else:
                     self._state = round(state, 2)
-            if self._convert_units == "power":
+            elif self._convert_units == "power":
+                _LOGGER.debug("Converting power ({}) to {}".format(state, self._units))
                 if self._units == "MW":
                     self._state = round(state / 1000000, 2)
                 elif self._units == "kW":
                     self._state = round(state / 1000, 2)
                 else:
                     self._state = round(state, 2)
-            elif self._json_key == "DAY_ENERGY":
-                self._state = round(state / 1000, 2)
             else:
+                _LOGGER.debug("Rounding ({}) to two decimals".format(state))
                 self._state = round(state, 2)
         else:
             self._state = 0
+        _LOGGER.debug("State converted ({})".format(self._state))
 
 class InverterData:
     """Handle Fronius API object and limit updates."""
