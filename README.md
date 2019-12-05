@@ -10,6 +10,7 @@ This component simplifies the integration of a Fronius inverter and optional Pow
 * rounds values to 2 decimal places
 * converts daily, yearly and total energy data to kWh or MWh (user-configurable)
 * optionally connects to PowerFlow devices for 3 additional sensors
+* optionally converts PowerFlow units to W, kW or MW
 * optionally sums values if you have more than one inverter
 * compatible with the custom [Power Wheel Card](https://github.com/gurbyz/power-wheel-card/tree/master) if using PowerFlow
 
@@ -57,6 +58,16 @@ sensor:
     ip_address: LOCAL_IP_FOR_FRONIUS
     scope: System
 ```
+
+```yaml
+# Example configuration.yaml entry where you have a PowerFlow device:
+sensor:
+  - platform: fronius_inverter
+    ip_address: LOCAL_IP_FOR_FRONIUS
+    powerflow: True
+    power_units: kW
+```
+
 ### Configuration Variables
 
 variable | required | type | default | description
@@ -65,6 +76,7 @@ variable | required | type | default | description
 ``name`` | no | string | ``Fronius`` | The preferred name of your Fronius Inverter.
 ``powerflow`` | no | boolean | ``False`` | Set to ``True`` if you have a PowerFlow meter to add ``grid_usage``, ``house_load`` and ``panel_status`` sensors.
 ``units`` | no | string | ``MWh`` | The preferred units for Year and Total Energy from ``Wh, kWh, MWh``.
+``power_units`` | no | string | ``W`` | The preferred PowerFlow units from ``W, kW, MW``.
 ``device_id`` | no | string | ``1`` | The Device ID of your Fronius Inverter.
 ``scope`` | no | string | ``Device`` | Set to ``System`` if you have multiple inverters. This will return ``ac_power, daily_energy, year_energy`` and, ``total_energy`` only. Case-sensitive.
 ``scan_interval`` | no | integer | ``60`` | Minimum configurable number of seconds between polls.
