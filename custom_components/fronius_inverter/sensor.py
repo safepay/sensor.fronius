@@ -9,10 +9,12 @@ import json
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
-    CONF_MONITORED_CONDITIONS, CONF_NAME, ATTR_ATTRIBUTION
+    CONF_MONITORED_CONDITIONS, CONF_NAME, ATTR_ATTRIBUTION, SUN_EVENT_SUNRISE, SUN_EVENT_SUNSET
     )
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
+from homeassistant.util.dt import utcnow as dt_utcnow, as_local
+from homeassistant.helpers.sun import get_astral_event_date
 
 _INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
 _POWERFLOW_URL = 'http://{}/solar_api/v1/GetPowerFlowRealtimeData.fcgi'
@@ -49,7 +51,9 @@ SENSOR_TYPES = {
     'dc_voltage': ['inverter', False, 'UDC', 'DC Voltage', 'V', False, 'mdi:solar-power'],
     'grid_usage': ['powerflow', False, 'P_Grid', 'Grid Usage', 'W', 'power', 'mdi:solar-power'],
     'house_load': ['powerflow', False, 'P_Load', 'House Load', 'W', 'power', 'mdi:solar-power'],
-    'panel_status': ['powerflow', False, 'P_PV', 'Panel Status', 'W', 'power', 'mdi:solar-panel']
+    'panel_status': ['powerflow', False, 'P_PV', 'Panel Status', 'W', 'power', 'mdi:solar-panel'],
+    'rel_autonomy': ['powerflow', False, 'rel_Autonomy', 'Relative Autonomy', '%', False, 'mdi:solar-panel'],
+    'rel_selfconsumption': ['powerflow', False, 'rel_SelfConsumption', ' Relative Self Consumption', '%', False, 'mdi:solar-panel']
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -153,6 +157,19 @@ class FroniusSensor(Entity):
         return self._state
 
     @property
+    def available(self, utcnow=None):
+        if utcnow is None:
+            utcnow = dt_utcnow()
+        now = as_local(utcnow)
+
+        start_time = self.find_start_time(now)
+        stop_time = self.find_stop_time(now)
+
+        _LOGGER.debug("!!! Start Time, Stop Time, Device: {}, {}, {}".format(as_local(start_time), as_local(stop_time), self._device))
+
+        return True
+
+    @property
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
         if self._convert_units:
@@ -220,6 +237,16 @@ class FroniusSensor(Entity):
         else:
             self._state = 0
         _LOGGER.debug("State converted ({})".format(self._state))
+
+    def find_start_time(self, now):
+        """Return sunrise or start_time if given."""
+        sunrise = get_astral_event_date(self.hass, SUN_EVENT_SUNRISE, now.date())
+        return sunrise
+
+    def find_stop_time(self, now):
+        """Return sunset or stop_time if given."""
+        sunset = get_astral_event_date(self.hass, SUN_EVENT_SUNSET, now.date())
+        return sunset
 
 class InverterData:
     """Handle Fronius API object and limit updates."""
