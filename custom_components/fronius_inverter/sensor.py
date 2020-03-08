@@ -171,7 +171,7 @@ class FroniusSensor(Entity):
 
     @property
     def unique_id(self):
-        """Return the cover unique id."""
+        """Return the unique id."""
         return f"{self._client} {self._name}"
 
     @property
