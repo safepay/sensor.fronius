@@ -170,6 +170,11 @@ class FroniusSensor(Entity):
         return True
 
     @property
+    def unique_id(self):
+        """Return the cover unique id."""
+        return f"{self._client} {self._name}"
+
+    @property
     def unit_of_measurement(self):
         """Return the unit of measurement of this entity, if any."""
         if self._convert_units:
