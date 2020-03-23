@@ -62,7 +62,11 @@ SENSOR_TYPES = {
     'smartmeter_current_ac_phase_three': ['smartmeter', False, 'Current_AC_Phase_3', 'SmartMeter Current AC Phase 3', 'A', False, 'mdi:solar-power'],
     'smartmeter_voltage_ac_phase_one': ['smartmeter', False, 'Voltage_AC_Phase_1', 'SmartMeter Voltage AC Phase 1', 'V', False, 'mdi:solar-power'],
     'smartmeter_voltage_ac_phase_two': ['smartmeter', False, 'Voltage_AC_Phase_2', 'SmartMeter Voltage AC Phase 2', 'V', False, 'mdi:solar-power'],
-    'smartmeter_voltage_ac_phase_three': ['smartmeter', False, 'Voltage_AC_Phase_3', 'SmartMeter Voltage AC Phase 3', 'V', False, 'mdi:solar-power']
+    'smartmeter_voltage_ac_phase_three': ['smartmeter', False, 'Voltage_AC_Phase_3', 'SmartMeter Voltage AC Phase 3', 'V', False, 'mdi:solar-power'],
+    'smartmeter_energy_ac_absolute_plus': ['smartmeter', False, 'EnergyReal_WAC_Plus_Absolute', 'SmartMeter Energy AC Absolute Plus', 'Wh', 'energy', 'mdi:solar-power'],
+    'smartmeter_energy_ac_absolute_minus': ['smartmeter', False, 'EnergyReal_WAC_Minus_Absolute', 'SmartMeter Energy AC Absolute Minus', 'Wh', 'energy', 'mdi:solar-power'],
+    'smartmeter_energy_ac_consumed': ['smartmeter', False, 'EnergyReal_WAC_Sum_Consumed', 'SmartMeter Energy AC Consumed', 'Wh', 'energy', 'mdi:solar-power'],
+    'smartmeter_energy_ac_sold': ['smartmeter', False, 'EnergyReal_WAC_Sum_Produced', 'SmartMeter Energy AC Sold', 'Wh', 'energy', 'mdi:solar-power']
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
