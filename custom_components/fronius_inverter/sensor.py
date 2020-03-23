@@ -18,6 +18,7 @@ from homeassistant.helpers.sun import get_astral_event_date
 
 _INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
 _POWERFLOW_URL = 'http://{}/solar_api/v1/GetPowerFlowRealtimeData.fcgi'
+_METER_URL = 'http://{}/solar_api/v1/GetMeterRealtimeData.cgi?Scope={}&DeviceId={}'
 #_INVERTERRT = 'http://{}{}?DeviceId={}&DataCollection=CommonInverterData'
 #_POWERFLOW_URL = 'http://{}PowerFlow'
 _LOGGER = logging.getLogger(__name__)
@@ -31,6 +32,8 @@ CONF_SCOPE = 'scope'
 CONF_UNITS = 'units'
 CONF_POWER_UNITS = 'power_units'
 CONF_POWERFLOW = 'powerflow'
+CONF_SMARTMETER = 'smartmeter'
+CONF_SMARTMETER_DEVICE_ID = 'smartmeter_device_id'
 
 SCOPE_TYPES = ['Device', 'System']
 UNIT_TYPES = ['Wh', 'kWh', 'MWh']
@@ -53,7 +56,13 @@ SENSOR_TYPES = {
     'house_load': ['powerflow', False, 'P_Load', 'House Load', 'W', 'power', 'mdi:solar-power'],
     'panel_status': ['powerflow', False, 'P_PV', 'Panel Status', 'W', 'power', 'mdi:solar-panel'],
     'rel_autonomy': ['powerflow', False, 'rel_Autonomy', 'Relative Autonomy', '%', False, 'mdi:solar-panel'],
-    'rel_selfconsumption': ['powerflow', False, 'rel_SelfConsumption', ' Relative Self Consumption', '%', False, 'mdi:solar-panel']
+    'rel_selfconsumption': ['powerflow', False, 'rel_SelfConsumption', ' Relative Self Consumption', '%', False, 'mdi:solar-panel'],
+    'smartmeter_current_ac_phase_one': ['smartmeter', False, 'Current_AC_Phase_1', 'SmartMeter Current AC Phase 1', 'A', False, 'mdi:solar-power'],
+    'smartmeter_current_ac_phase_two': ['smartmeter', False, 'Current_AC_Phase_2', 'SmartMeter Current AC Phase 2', 'A', False, 'mdi:solar-power'],
+    'smartmeter_current_ac_phase_three': ['smartmeter', False, 'Current_AC_Phase_3', 'SmartMeter Current AC Phase 3', 'A', False, 'mdi:solar-power'],
+    'smartmeter_voltage_ac_phase_one': ['smartmeter', False, 'Voltage_AC_Phase_1', 'SmartMeter Voltage AC Phase 1', 'V', False, 'mdi:solar-power'],
+    'smartmeter_voltage_ac_phase_two': ['smartmeter', False, 'Voltage_AC_Phase_2', 'SmartMeter Voltage AC Phase 2', 'V', False, 'mdi:solar-power'],
+    'smartmeter_voltage_ac_phase_three': ['smartmeter', False, 'Voltage_AC_Phase_3', 'SmartMeter Voltage AC Phase 3', 'V', False, 'mdi:solar-power']
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -69,6 +78,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_POWERFLOW, default=False): cv.boolean,
     vol.Optional(CONF_MONITORED_CONDITIONS, default=list(SENSOR_TYPES)):
         vol.All(cv.ensure_list, [vol.In(SENSOR_TYPES)]),
+    vol.Optional(CONF_SMARTMETER, default=False): cv.boolean,
+    vol.Optional(CONF_SMARTMETER_DEVICE_ID, default='0'): cv.string,
 })
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
@@ -81,6 +92,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     power_units = config.get(CONF_POWER_UNITS)
     name = config.get(CONF_NAME)
     powerflow = config.get(CONF_POWERFLOW)
+    smartmeter = config.get(CONF_SMARTMETER)
+    smartmeter_device_id = config.get(CONF_SMARTMETER_DEVICE_ID)
 
     inverter_data = InverterData(ip_address, device_id, scope)
 
@@ -97,7 +110,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         except ValueError as err:
             _LOGGER.error("Received data error from Fronius Powerflow: %s", err)
             return
-
+    
+    if smartmeter:
+        smartmeter_data = SmartMeterData(ip_address, smartmeter_device_id)
+        try:
+            await smartmeter_data.async_update()
+        except ValueError as err:
+            _LOGGER.error("Received data error from Fronius SmartMeter: %s", err)
+            return
 
 
     dev = []
@@ -117,19 +137,23 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         state = hass.states.get(sensor)
     
         if device == "inverter":
-            _LOGGER.debug("Adding inverter sensor: {}, {}, {}, {}, {}, {}, {}".format(inverter_data, name, variable, scope, sensor_units, device_id, powerflow))
-            dev.append(FroniusSensor(inverter_data, name, variable, scope, sensor_units, device_id, powerflow))
+            _LOGGER.debug("Adding inverter sensor: {}, {}, {}, {}, {}, {}, {}, {}".format(inverter_data, name, variable, scope, sensor_units, device_id, powerflow, smartmeter))
+            dev.append(FroniusSensor(inverter_data, name, variable, scope, sensor_units, device_id, powerflow, smartmeter))
             
         elif device == "powerflow" and powerflow:
-            _LOGGER.debug("Adding powerflow sensor: {}, {}, {}, {}, {}, {}, {}".format(inverter_data, name, variable, scope, sensor_units, device_id, powerflow))
-            dev.append(FroniusSensor(powerflow_data, name, variable, scope, sensor_units, device_id, powerflow))
+            _LOGGER.debug("Adding powerflow sensor: {}, {}, {}, {}, {}, {}, {}, {}".format(powerflow_data, name, variable, scope, sensor_units, device_id, powerflow, smartmeter))
+            dev.append(FroniusSensor(powerflow_data, name, variable, scope, sensor_units, device_id, powerflow, smartmeter))
+        
+        elif device == "smartmeter" and smartmeter:
+            _LOGGER.debug("Adding meter sensor: {}, {}, {}, {}, {}, {}, {}, {}".format(smartmeter_data, name, variable, scope, sensor_units, device_id, powerflow, smartmeter))
+            dev.append(FroniusSensor(smartmeter_data, name, variable, scope, sensor_units, device_id, powerflow, smartmeter))
 
     async_add_entities(dev, True)
 
 class FroniusSensor(Entity):
     """Implementation of the Fronius inverter sensor."""
 
-    def __init__(self, device_data, name, sensor_type, scope, units, device_id, powerflow):
+    def __init__(self, device_data, name, sensor_type, scope, units, device_id, powerflow, smartmeter):
         """Initialize the sensor."""
         self._client = name
         self._device = SENSOR_TYPES[sensor_type][0]
@@ -145,6 +169,7 @@ class FroniusSensor(Entity):
         self._data = device_data
         self._icon = SENSOR_TYPES[sensor_type][6]
         self._powerflow = powerflow
+        self._smartmeter = smartmeter
 
     @property
     def name(self):
@@ -213,6 +238,10 @@ class FroniusSensor(Entity):
                     for item in self._data.latest_data[self._json_key]['Values']:
                         state = state + self._data.latest_data[self._json_key]['Values'][item]
             elif self._device == 'powerflow':
+                # Read data
+                if self._data.latest_data[self._json_key]:
+                    state = self._data.latest_data[self._json_key]
+            elif self._device == 'smartmeter':
                 # Read data
                 if self._data.latest_data[self._json_key]:
                     state = self._data.latest_data[self._json_key]
@@ -313,4 +342,37 @@ class PowerflowData:
             self._data = result['Body']['Data']['Site']
         except (requests.exceptions.RequestException) as error:
             _LOGGER.error("Unable to connect to Powerflow: %s", error)
+            self._data = None
+
+class SmartMeterData:
+    """Handle Fronius API object and limit updates."""
+
+    def __init__(self, ip_address, device_id):
+        """Initialize the data object."""
+        self._ip_address = ip_address
+        self._device_id = device_id
+        self._scope = 'Device'
+
+    def _build_url(self):
+        """Build the URL for the requests."""
+        url = _METER_URL.format(self._ip_address, self._scope, self._device_id)
+        _LOGGER.debug("Fronius SmartMeter URL: %s", url)
+        return url
+
+    @property
+    def latest_data(self):
+        """Return the latest data object."""
+        if self._data:
+            return self._data
+        return None
+
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
+    async def async_update(self):
+        """Get the latest data from inverter."""
+        _LOGGER.debug("Requesting smartmeter data")
+        try:
+            result = requests.get(self._build_url(), timeout=10).json()
+            self._data = result['Body']['Data']
+        except (requests.exceptions.RequestException) as error:
+            _LOGGER.error("Unable to connect to Meter: %s", error)
             self._data = None
