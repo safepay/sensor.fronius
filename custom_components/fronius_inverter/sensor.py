@@ -9,10 +9,12 @@ import json
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
-    CONF_MONITORED_CONDITIONS, CONF_NAME, ATTR_ATTRIBUTION
+    CONF_MONITORED_CONDITIONS, CONF_NAME, ATTR_ATTRIBUTION, SUN_EVENT_SUNRISE, SUN_EVENT_SUNSET
     )
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
+from homeassistant.util.dt import utcnow as dt_utcnow, as_local
+from homeassistant.helpers.sun import get_astral_event_date
 
 _INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
 _POWERFLOW_URL = 'http://{}/solar_api/v1/GetPowerFlowRealtimeData.fcgi'
@@ -41,7 +43,7 @@ SENSOR_TYPES = {
     'year_energy': ['inverter', True, 'YEAR_ENERGY', 'Year Energy', 'MWh', 'energy', 'mdi:solar-power'],
     'total_energy': ['inverter', True, 'TOTAL_ENERGY', 'Total Energy', 'MWh', 'energy', 'mdi:solar-power'],
     'ac_power': ['inverter', True, 'PAC', 'AC Power', 'W', 'power', 'mdi:solar-power'],
-    'day_energy': ['inverter', True, 'DAY_ENERGY', 'Day Energy', 'kWh', False, 'mdi:solar-power'],
+    'day_energy': ['inverter', True, 'DAY_ENERGY', 'Day Energy', 'kWh', 'energy', 'mdi:solar-power'],
     'ac_current': ['inverter', False, 'IAC', 'AC Current', 'A', False, 'mdi:solar-power'],
     'ac_voltage': ['inverter', False, 'UAC', 'AC Voltage', 'V', False, 'mdi:solar-power'],
     'ac_frequency': ['inverter', False, 'FAC', 'AC Frequency', 'Hz', False, 'mdi:solar-power'],
@@ -49,7 +51,9 @@ SENSOR_TYPES = {
     'dc_voltage': ['inverter', False, 'UDC', 'DC Voltage', 'V', False, 'mdi:solar-power'],
     'grid_usage': ['powerflow', False, 'P_Grid', 'Grid Usage', 'W', 'power', 'mdi:solar-power'],
     'house_load': ['powerflow', False, 'P_Load', 'House Load', 'W', 'power', 'mdi:solar-power'],
-    'panel_status': ['powerflow', False, 'P_PV', 'Panel Status', 'W', 'power', 'mdi:solar-panel']
+    'panel_status': ['powerflow', False, 'P_PV', 'Panel Status', 'W', 'power', 'mdi:solar-panel'],
+    'rel_autonomy': ['powerflow', False, 'rel_Autonomy', 'Relative Autonomy', '%', False, 'mdi:solar-panel'],
+    'rel_selfconsumption': ['powerflow', False, 'rel_SelfConsumption', ' Relative Self Consumption', '%', False, 'mdi:solar-panel']
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -101,21 +105,24 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
         device = SENSOR_TYPES[variable][0]
         system = SENSOR_TYPES[variable][1]
+        sensor_units = SENSOR_TYPES[variable][4]
         convert_units = SENSOR_TYPES[variable][5]
 
         if convert_units == 'power':
-            units = power_units
+            sensor_units = power_units
+        elif convert_units == 'energy':
+            sensor_units = units
 
         sensor = "sensor." + name + "_" + SENSOR_TYPES[variable][3]
         state = hass.states.get(sensor)
     
         if device == "inverter":
-            if scope == 'System' and system:
-                dev.append(FroniusSensor(inverter_data, name, variable, scope, units, device_id, powerflow))
-            elif  scope == 'Device':
-                dev.append(FroniusSensor(inverter_data, name, variable, scope, units, device_id, powerflow))
+            _LOGGER.debug("Adding inverter sensor: {}, {}, {}, {}, {}, {}, {}".format(inverter_data, name, variable, scope, sensor_units, device_id, powerflow))
+            dev.append(FroniusSensor(inverter_data, name, variable, scope, sensor_units, device_id, powerflow))
+            
         elif device == "powerflow" and powerflow:
-            dev.append(FroniusSensor(powerflow_data, name, variable, scope, units, device_id, powerflow))
+            _LOGGER.debug("Adding powerflow sensor: {}, {}, {}, {}, {}, {}, {}".format(inverter_data, name, variable, scope, sensor_units, device_id, powerflow))
+            dev.append(FroniusSensor(powerflow_data, name, variable, scope, sensor_units, device_id, powerflow))
 
     async_add_entities(dev, True)
 
@@ -148,6 +155,24 @@ class FroniusSensor(Entity):
     def state(self):
         """Return the state of the device."""
         return self._state
+
+    @property
+    def available(self, utcnow=None):
+        if utcnow is None:
+            utcnow = dt_utcnow()
+        now = as_local(utcnow)
+
+        start_time = self.find_start_time(now)
+        stop_time = self.find_stop_time(now)
+
+        _LOGGER.debug("!!! Start Time, Stop Time, Device: {}, {}, {}".format(as_local(start_time), as_local(stop_time), self._device))
+
+        return True
+
+    @property
+    def unique_id(self):
+        """Return the unique id."""
+        return f"{self._client} {self._name}"
 
     @property
     def unit_of_measurement(self):
@@ -196,25 +221,37 @@ class FroniusSensor(Entity):
         # convert and round the result
         if state is not None:
             if self._convert_units == "energy":
+                _LOGGER.debug("Converting energy ({}) to {}".format(state, self._units))
                 if self._units == "MWh":
                     self._state = round(state / 1000000, 2)
                 elif self._units == "kWh":
                     self._state = round(state / 1000, 2)
                 else:
                     self._state = round(state, 2)
-            if self._convert_units == "power":
+            elif self._convert_units == "power":
+                _LOGGER.debug("Converting power ({}) to {}".format(state, self._units))
                 if self._units == "MW":
                     self._state = round(state / 1000000, 2)
                 elif self._units == "kW":
                     self._state = round(state / 1000, 2)
                 else:
                     self._state = round(state, 2)
-            elif self._json_key == "DAY_ENERGY":
-                self._state = round(state / 1000, 2)
             else:
+                _LOGGER.debug("Rounding ({}) to two decimals".format(state))
                 self._state = round(state, 2)
         else:
             self._state = 0
+        _LOGGER.debug("State converted ({})".format(self._state))
+
+    def find_start_time(self, now):
+        """Return sunrise or start_time if given."""
+        sunrise = get_astral_event_date(self.hass, SUN_EVENT_SUNRISE, now.date())
+        return sunrise
+
+    def find_stop_time(self, now):
+        """Return sunset or stop_time if given."""
+        sunset = get_astral_event_date(self.hass, SUN_EVENT_SUNSET, now.date())
+        return sunset
 
 class InverterData:
     """Handle Fronius API object and limit updates."""
