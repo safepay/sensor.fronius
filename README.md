@@ -10,6 +10,7 @@ This component simplifies the integration of a Fronius inverter and optional Pow
 * rounds values to 2 decimal places
 * converts daily, yearly and total energy data to kWh or MWh (user-configurable)
 * optionally connects to PowerFlow devices for 3 additional sensors
+* optionally connects to SmartMeter devices for 10 additional sensors
 * optionally converts PowerFlow units to W, kW or MW
 * optionally sums values if you have more than one inverter
 * compatible with the custom [Power Wheel Card](https://github.com/gurbyz/power-wheel-card/tree/master) if using PowerFlow
