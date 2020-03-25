@@ -4,8 +4,8 @@
 
 
 # Fronius Sensor for Home Assistant
-This component simplifies the integration of a Fronius inverter and optional PowerFlow:
-* creates up to 12 individual sensors for easy display or use in automations
+This component simplifies the integration of a Fronius inverter and optional PowerFlow and SmartMeter:
+* creates up to 24 individual sensors for easy display or use in automations
 * converts Wh to kWh
 * rounds values to 2 decimal places
 * converts daily, yearly and total energy data to kWh or MWh (user-configurable)
@@ -18,6 +18,8 @@ This component simplifies the integration of a Fronius inverter and optional Pow
 The Default URL called is ``http://ip_address/GetInverterRealtimeData.cgi?Scope=Device&DeviceId=1&DataCollection=CommonInverterData``
 
 The optional PowerFlow URL is ``http://ip_address/solar_api/v1/GetPowerFlowRealtimeData.fcgi``
+
+The optional SmartMeter URL is ``http://ip_address/solar_api/v1/GetMeterRealtimeData.cgi?Scope=Device&DeviceId=1``
 
 ### Installation
 Copy the ``fronius_inverter`` folder in the custom_components directory into your own custom_components directory in your config directory of Home Assistant.
@@ -68,13 +70,22 @@ sensor:
     power_units: kW
 ```
 
+```yaml
+# Example configuration.yaml entry where you have a SmartMeter device:
+sensor:
+  - platform: fronius_inverter
+    ip_address: LOCAL_IP_FOR_FRONIUS
+    smartmeter: True
+```
+
 ### Configuration Variables
 
 variable | required | type | default | description
 -------- | -------- | ---- | ------- | -----------
 ``ip_address`` | yes | string | | The local IP address of your Fronius Inverter.
 ``name`` | no | string | ``Fronius`` | The preferred name of your Fronius Inverter.
-``powerflow`` | no | boolean | ``False`` | Set to ``True`` if you have a PowerFlow meter to add ``grid_usage``, ``house_load`` and ``panel_status`` sensors.
+``powerflow`` | no | boolean | ``False`` | Set to ``True`` if you have a PowerFlow meter (SmartMeter) to add ``grid_usage``, ``house_load`` and ``panel_status`` sensors.
+``smartmeter`` | no | boolean | ``False`` | Set to ``True`` if you have a SmartMeter to add sensors for grid AC current/voltage and total energy sold/consumed.
 ``units`` | no | string | ``MWh`` | The preferred units for Year and Total Energy from ``Wh, kWh, MWh``.
 ``power_units`` | no | string | ``W`` | The preferred PowerFlow units from ``W, kW, MW``.
 ``device_id`` | no | string | ``1`` | The Device ID of your Fronius Inverter.
