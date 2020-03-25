@@ -87,6 +87,7 @@ variable | required | type | default | description
 ``name`` | no | string | ``Fronius`` | The preferred name of your Fronius Inverter.
 ``powerflow`` | no | boolean | ``False`` | Set to ``True`` if you have a PowerFlow meter (SmartMeter) to add ``grid_usage``, ``house_load`` and ``panel_status`` sensors.
 ``smartmeter`` | no | boolean | ``False`` | Set to ``True`` if you have a SmartMeter to add sensors for grid AC current/voltage and total energy sold/consumed.
+``smartmeter_device_id`` | no | string | ``0`` | The Device ID of your Fronius SmartMeter.
 ``units`` | no | string | ``MWh`` | The preferred units for Year and Total Energy from ``Wh, kWh, MWh``.
 ``power_units`` | no | string | ``W`` | The preferred PowerFlow units from ``W, kW, MW``.
 ``device_id`` | no | string | ``1`` | The Device ID of your Fronius Inverter.
