@@ -75,7 +75,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_NAME, default='Fronius'): cv.string,
     vol.Optional(CONF_SCOPE, default='Device'):
         vol.In(SCOPE_TYPES),
-    vol.Optional(CONF_UNITS, default='MWh'):
+    vol.Optional(CONF_UNITS, default='kWh'):
         vol.In(UNIT_TYPES),
     vol.Optional(CONF_POWER_UNITS, default='W'):
         vol.In(POWER_UNIT_TYPES),
