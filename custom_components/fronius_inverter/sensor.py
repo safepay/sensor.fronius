@@ -267,6 +267,10 @@ class FroniusSensor(Entity):
                     self._state = round(state / 1000, 2)
                 else:
                     self._state = round(state, 2)
+            elif self._json_key == "DAY_ENERGY":
+                # day energy always gets converted to kWh
+                _LOGGER.debug("Converting day energy to kWh ({})".format(state))
+                self._state = round(state / 1000, 2)
             else:
                 _LOGGER.debug("Rounding ({}) to two decimals".format(state))
                 self._state = round(state, 2)
