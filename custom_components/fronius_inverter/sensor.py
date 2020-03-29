@@ -46,7 +46,7 @@ SENSOR_TYPES = {
     'year_energy': ['inverter', True, 'YEAR_ENERGY', 'Year Energy', 'MWh', 'energy', 'mdi:solar-power'],
     'total_energy': ['inverter', True, 'TOTAL_ENERGY', 'Total Energy', 'MWh', 'energy', 'mdi:solar-power'],
     'ac_power': ['inverter', True, 'PAC', 'AC Power', 'W', 'power', 'mdi:solar-power'],
-    'day_energy': ['inverter', True, 'DAY_ENERGY', 'Day Energy', 'kWh', 'energy', 'mdi:solar-power'],
+    'day_energy': ['inverter', True, 'DAY_ENERGY', 'Day Energy', 'kWh', False, 'mdi:solar-power'],
     'ac_current': ['inverter', False, 'IAC', 'AC Current', 'A', False, 'mdi:solar-power'],
     'ac_voltage': ['inverter', False, 'UAC', 'AC Voltage', 'V', False, 'mdi:solar-power'],
     'ac_frequency': ['inverter', False, 'FAC', 'AC Frequency', 'Hz', False, 'mdi:solar-power'],
@@ -75,7 +75,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_NAME, default='Fronius'): cv.string,
     vol.Optional(CONF_SCOPE, default='Device'):
         vol.In(SCOPE_TYPES),
-    vol.Optional(CONF_UNITS, default='kWh'):
+    vol.Optional(CONF_UNITS, default='MWh'):
         vol.In(UNIT_TYPES),
     vol.Optional(CONF_POWER_UNITS, default='W'):
         vol.In(POWER_UNIT_TYPES),
