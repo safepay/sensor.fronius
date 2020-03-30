@@ -63,8 +63,6 @@ SENSOR_TYPES = {
     'smartmeter_voltage_ac_phase_one': ['smartmeter', False, 'Voltage_AC_Phase_1', 'SmartMeter Voltage AC Phase 1', 'V', False, 'mdi:solar-power'],
     'smartmeter_voltage_ac_phase_two': ['smartmeter', False, 'Voltage_AC_Phase_2', 'SmartMeter Voltage AC Phase 2', 'V', False, 'mdi:solar-power'],
     'smartmeter_voltage_ac_phase_three': ['smartmeter', False, 'Voltage_AC_Phase_3', 'SmartMeter Voltage AC Phase 3', 'V', False, 'mdi:solar-power'],
-    'smartmeter_energy_ac_absolute_plus': ['smartmeter', False, 'EnergyReal_WAC_Plus_Absolute', 'SmartMeter Energy AC Absolute Plus', 'Wh', 'energy', 'mdi:solar-power'],
-    'smartmeter_energy_ac_absolute_minus': ['smartmeter', False, 'EnergyReal_WAC_Minus_Absolute', 'SmartMeter Energy AC Absolute Minus', 'Wh', 'energy', 'mdi:solar-power'],
     'smartmeter_energy_ac_consumed': ['smartmeter', False, 'EnergyReal_WAC_Sum_Consumed', 'SmartMeter Energy AC Consumed', 'Wh', 'energy', 'mdi:solar-power'],
     'smartmeter_energy_ac_sold': ['smartmeter', False, 'EnergyReal_WAC_Sum_Produced', 'SmartMeter Energy AC Sold', 'Wh', 'energy', 'mdi:solar-power']
 }
@@ -269,6 +267,10 @@ class FroniusSensor(Entity):
                     self._state = round(state / 1000, 2)
                 else:
                     self._state = round(state, 2)
+            elif self._json_key == "DAY_ENERGY":
+                # day energy always gets converted to kWh
+                _LOGGER.debug("Converting day energy to kWh ({})".format(state))
+                self._state = round(state / 1000, 2)
             else:
                 _LOGGER.debug("Rounding ({}) to two decimals".format(state))
                 self._state = round(state, 2)
