@@ -39,7 +39,7 @@ SCOPE_TYPES = ['Device', 'System']
 UNIT_TYPES = ['Wh', 'kWh', 'MWh']
 POWER_UNIT_TYPES = ['W', 'kW', 'MW']
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
+MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=10)
 
 # Key: ['device', 'system', 'json_key', 'name', 'unit', 'convert_units', 'icon']
 SENSOR_TYPES = {
