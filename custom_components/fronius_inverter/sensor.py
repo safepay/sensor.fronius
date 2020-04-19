@@ -233,24 +233,30 @@ class FroniusSensor(Entity):
         if self._data.latest_data and (self._json_key in self._data.latest_data):
             _LOGGER.debug("Device: {}".format(self._device))
             if self._device == 'inverter':
+                # Read data, if a value is 'null' convert it to 0
                 if self._scope == 'Device':
-                    # Read data
                     state = self._data.latest_data[self._json_key]['Value']
+                    if state is None:
+                        _LOGGER.debug(">>>>> Converting {} from null to 0".format(self._json_key))
+                        state = 0
                 elif self._scope == 'System':
                     for item in self._data.latest_data[self._json_key]['Values']:
-                        state = state + self._data.latest_data[self._json_key]['Values'][item]
-            elif self._device == 'powerflow':
-                # Read data
-                if self._data.latest_data[self._json_key]:
-                    state = self._data.latest_data[self._json_key]
-            elif self._device == 'smartmeter':
-                # Read data
-                if self._data.latest_data[self._json_key]:
-                    state = self._data.latest_data[self._json_key]
+                        value = self._data.latest_data[self._json_key]['Values'][item]
+                        if value is None:
+                            _LOGGER.debug(">>>>> Converting {} from null to 0".format(self._json_key))
+                            value = 0
+                        state = state + value
+            elif self._device == 'powerflow' or self._device == 'smartmeter':
+                # Read data directly, if it is 'null' convert it to 0
+                state = self._data.latest_data[self._json_key]
+                if state is None:
+                    _LOGGER.debug(">>>>> Converting {} from null to 0".format(self._json_key))
+                    state = 0
             _LOGGER.debug("State: {}".format(state))
 
         # convert and round the result
         if state is not None:
+            _LOGGER.debug("Sensor: {}".format(self._json_key))
             if self._convert_units == "energy":
                 _LOGGER.debug("Converting energy ({}) to {}".format(state, self._units))
                 if self._units == "MWh":
@@ -275,7 +281,8 @@ class FroniusSensor(Entity):
                 _LOGGER.debug("Rounding ({}) to two decimals".format(state))
                 self._state = round(state, 2)
         else:
-            self._state = 0
+            _LOGGER.debug(">>>>> State is None for {} <<<<<".format(self._json_key))
+            _LOGGER.debug("Latest data: {}".format(self._data.latest_data))
         _LOGGER.debug("State converted ({})".format(self._state))
 
     def find_start_time(self, now):
@@ -313,6 +320,7 @@ class InverterData:
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update(self):
         """Get the latest data from inverter."""
+        _LOGGER.debug("Requesting inverter data")
         try:
             result = requests.get(self._build_url(), timeout=10).json()
             self._data = result['Body']['Data']
@@ -343,6 +351,7 @@ class PowerflowData:
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update(self):
         """Get the latest data from inverter."""
+        _LOGGER.debug("Requesting powerflow data")
         try:
             result = requests.get(self._build_url(), timeout=10).json()
             self._data = result['Body']['Data']['Site']

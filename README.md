@@ -4,15 +4,18 @@
 
 
 # Fronius Sensor for Home Assistant
-This component simplifies the integration of a Fronius inverter and optional PowerFlow and SmartMeter:
-* creates up to 24 individual sensors for easy display or use in automations
+This component simplifies the integration of a Fronius inverter and optional PowerFlow/SmartMeter:
+* creates up to 22 individual sensors for easy display or use in automations
 * converts Wh to kWh
 * rounds values to 2 decimal places
 * converts daily, yearly and total energy data to kWh or MWh (user-configurable)
-* optionally connects to PowerFlow devices for 3 additional sensors
-* optionally connects to SmartMeter devices for 10 additional sensors
-* optionally converts PowerFlow units to W, kW or MW
 * optionally sums values if you have more than one inverter
+
+If you have a SmartMeter installed this component:
+* optionally connects to PowerFlow API for 5 additional sensors
+* optionally connects to SmartMeter API for 8 additional sensors
+* optionally converts PowerFlow units to W, kW or MW
+
 * compatible with the custom [Power Wheel Card](https://github.com/gurbyz/power-wheel-card/tree/master) if using PowerFlow
 
 ### URL's Utilised
@@ -63,7 +66,7 @@ sensor:
 ```
 
 ```yaml
-# Example configuration.yaml entry where you have a PowerFlow device:
+# Example configuration.yaml entry where you have a SmartMeter device and add PowerFlow sensors:
 sensor:
   - platform: fronius_inverter
     ip_address: LOCAL_IP_FOR_FRONIUS
@@ -72,7 +75,7 @@ sensor:
 ```
 
 ```yaml
-# Example configuration.yaml entry where you have a SmartMeter device:
+# Example configuration.yaml entry where you have a SmartMeter device and add SmartMeter sensors:
 sensor:
   - platform: fronius_inverter
     ip_address: LOCAL_IP_FOR_FRONIUS
@@ -85,15 +88,14 @@ variable | required | type | default | description
 -------- | -------- | ---- | ------- | -----------
 ``ip_address`` | yes | string | | The local IP address of your Fronius Inverter.
 ``name`` | no | string | ``Fronius`` | The preferred name of your Fronius Inverter.
-``powerflow`` | no | boolean | ``False`` | Set to ``True`` if you have a PowerFlow meter (SmartMeter) to add ``grid_usage``, ``house_load`` and ``panel_status`` sensors.
-``smartmeter`` | no | boolean | ``False`` | Set to ``True`` if you have a SmartMeter to add sensors for grid AC current/voltage and total energy sold/consumed.
+``powerflow`` | no | boolean | ``False`` | Set to ``True`` if you have a PowerFlow meter (SmartMeter) to add ``grid_usage``, ``house_load``, ``panel_status``, ``rel_autonomy`` and ``rel_selfconsumption`` sensors.
+``smartmeter`` | no | boolean | ``False`` | Set to ``True`` if you have a SmartMeter to add ``smartmeter_current_ac_phase_one``, ``smartmeter_current_ac_phase_two``, ``smartmeter_current_ac_phase_three``, ``smartmeter_voltage_ac_phase_one``, ``smartmeter_voltage_ac_phase_two``, ``smartmeter_voltage_ac_phase_three``, ``smartmeter_energy_ac_consumed`` and ``smartmeter_energy_ac_sold`` sensors.
 ``smartmeter_device_id`` | no | string | ``0`` | The Device ID of your Fronius SmartMeter.
 ``units`` | no | string | ``MWh`` | The preferred units for Year and Total Energy from ``Wh, kWh, MWh``.
 ``power_units`` | no | string | ``W`` | The preferred PowerFlow units from ``W, kW, MW``.
 ``device_id`` | no | string | ``1`` | The Device ID of your Fronius Inverter.
 ``scope`` | no | string | ``Device`` | Set to ``System`` if you have multiple inverters. This will return ``ac_power, daily_energy, year_energy`` and, ``total_energy`` only. Case-sensitive.
-``scan_interval`` | no | integer | ``60`` | Minimum configurable number of seconds between polls.
-``monitored_conditions`` | no | list | All | List of monitored conditions from: ``ac_power``, ``ac_current``, ``ac_voltage``, ``ac_frequency``, ``dc_current``, ``dc_energy``, ``daily_energy``, ``year_energy``, ``total_energy``
+``monitored_conditions`` | no | list | All | List of monitored conditions from: ``ac_power``, ``ac_current``, ``ac_voltage``, ``ac_frequency``, ``dc_current``, ``dc_energy``, ``daily_energy``, ``year_energy``, ``total_energy``, ``grid_usage``, ``house_load``, ``panel_status``, ``rel_autonomy``, ``rel_selfconsumption``, ``smartmeter_current_ac_phase_one``, ``smartmeter_current_ac_phase_two``, ``smartmeter_current_ac_phase_three``, ``smartmeter_voltage_ac_phase_one``, ``smartmeter_voltage_ac_phase_two``, ``smartmeter_voltage_ac_phase_three``, ``smartmeter_energy_ac_consumed``, ``smartmeter_energy_ac_sold``
 
 
 ### Custom Power Wheel Card (if using a Powerflow)
