@@ -65,8 +65,8 @@ SENSOR_TYPES = {
     'smartmeter_voltage_ac_phase_one': ['smartmeter', False, 'Voltage_AC_Phase_1', 'SmartMeter Voltage AC Phase 1', 'V', False, 'mdi:solar-power'],
     'smartmeter_voltage_ac_phase_two': ['smartmeter', False, 'Voltage_AC_Phase_2', 'SmartMeter Voltage AC Phase 2', 'V', False, 'mdi:solar-power'],
     'smartmeter_voltage_ac_phase_three': ['smartmeter', False, 'Voltage_AC_Phase_3', 'SmartMeter Voltage AC Phase 3', 'V', False, 'mdi:solar-power'],
-    'smartmeter_energy_ac_consumed': ['smartmeter', False, 'EnergyReal_WAC_Sum_Consumed', 'SmartMeter Energy AC Consumed', False, 'energy', 'mdi:solar-power'],
-    'smartmeter_energy_ac_sold': ['smartmeter', False, 'EnergyReal_WAC_Sum_Produced', 'SmartMeter Energy AC Sold', 'kWh', False, 'mdi:solar-power']
+    'smartmeter_energy_ac_consumed': ['smartmeter', False, 'EnergyReal_WAC_Sum_Consumed', 'SmartMeter Energy AC Consumed', 'Wh', 'energy', 'mdi:solar-power'],
+    'smartmeter_energy_ac_sold': ['smartmeter', False, 'EnergyReal_WAC_Sum_Produced', 'SmartMeter Energy AC Sold', 'Wh', 'energy', 'mdi:solar-power']
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
@@ -219,6 +219,11 @@ class FroniusSensor(Entity):
         """Icon to use in the frontend, if any."""
         return self._icon
 
+    @property
+    def should_poll(self):
+        """Device should not be polled, returns False."""
+        return False
+
     async def async_update(self, utcnow=None):
         """Get the latest data from inverter and update the states."""
 
@@ -278,6 +283,14 @@ class FroniusSensor(Entity):
             _LOGGER.debug("Latest data: {}".format(self._data.latest_data))
         _LOGGER.debug("State converted ({})".format(self._state))
 
+    async def async_added_to_hass(self):
+        """Register at data provider for updates."""
+        await self._data.register(self)
+
+    def __hash__(self):
+        """Hash sensor by hashing its name."""
+        return hash(self.name)
+
     def find_start_time(self, now):
         """Return sunrise or start_time if given."""
         sunrise = get_astral_event_date(self.hass, SUN_EVENT_SUNRISE, now.date())
@@ -298,6 +311,7 @@ class FroniusFetcher:
         self._device_id = device_id
         self._scope = scope
         self._data = None
+        self._sensors = set()
 
     async def async_update(self):
         """Retrieve and update latest state."""
@@ -307,6 +321,10 @@ class FroniusFetcher:
             _LOGGER.error("Failed to update: connection error")
         except ValueError:
             _LOGGER.error("Failed to update: invalid response received")
+
+        # Schedule an update for all included sensors
+        for sensor in self._sensors:
+            sensor.async_schedule_update_ha_state(True)
     
     async def fetch_data(self, url):
         """Retrieve data from inverter in async manner."""
@@ -327,6 +345,10 @@ class FroniusFetcher:
         if self._data:
             return self._data
         return None
+
+    async def register(self, sensor):
+        """Register child sensor for update subscriptions."""
+        self._sensors.add(sensor)
 
 class InverterData(FroniusFetcher):
     """Handle Fronius API object and limit updates."""

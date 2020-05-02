@@ -8,7 +8,7 @@ This component simplifies the integration of a Fronius inverter and optional Pow
 * creates up to 22 individual sensors for easy display or use in automations
 * converts Wh to kWh
 * rounds values to 2 decimal places
-* converts daily, yearly and total energy data to kWh or MWh (user-configurable)
+* converts yearly and total energy data to kWh or MWh (user-configurable)
 * optionally sums values if you have more than one inverter
 
 If you have a SmartMeter installed this component:
@@ -132,7 +132,7 @@ grid_energy_production_entity: sensor.grid_sold_energy_day
 Next you need to create two new sensors for grid energy consumption and production. And this is what
 will differ depending on your smart meter installation.
 
-#1 Feed-in path
+1. Feed-in path
 This is the simplest setup. With the smart meter in the feed-in path (next to your main electricity
 meter) it already knows what you are consuming and producing. But it counts the accumulative values.
 And we need daily vaules, in kWh, to match the sensor.fronius_day_energy.
@@ -151,7 +151,7 @@ utility_meter:
     cycle: daily
 ```
 
-#2 Consumption path
+2. Consumption path
 With the smart meter in the consumption path (between the inverter and your consumers) it cannot
 know how much you are consuming or producing from/to the grid. So the only sensor that will have
 a value is the sensor.fronius_smartmeter_energy_ac_consumed. But it will not show what is consumed
