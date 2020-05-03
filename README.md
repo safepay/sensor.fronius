@@ -88,7 +88,7 @@ variable | required | type | default | description
 -------- | -------- | ---- | ------- | -----------
 ``ip_address`` | yes | string | | The local IP address of your Fronius Inverter.
 ``name`` | no | string | ``Fronius`` | The preferred name of your Fronius Inverter.
-``scan_interval`` | no | int | 60 | The interval to query the Fronius Inverter for data.
+``scan_interval`` | no | string | 60 | The interval to query the Fronius Inverter for data.
 ``powerflow`` | no | boolean | ``False`` | Set to ``True`` if you have a PowerFlow meter (SmartMeter) to add ``grid_usage``, ``house_load``, ``panel_status``, ``rel_autonomy`` and ``rel_selfconsumption`` sensors.
 ``smartmeter`` | no | boolean | ``False`` | Set to ``True`` if you have a SmartMeter to add ``smartmeter_current_ac_phase_one``, ``smartmeter_current_ac_phase_two``, ``smartmeter_current_ac_phase_three``, ``smartmeter_voltage_ac_phase_one``, ``smartmeter_voltage_ac_phase_two``, ``smartmeter_voltage_ac_phase_three``, ``smartmeter_energy_ac_consumed`` and ``smartmeter_energy_ac_sold`` sensors.
 ``smartmeter_device_id`` | no | string | ``0`` | The Device ID of your Fronius SmartMeter.
@@ -132,10 +132,9 @@ grid_energy_production_entity: sensor.grid_sold_energy_day
 Next you need to create two new sensors for grid energy consumption and production. And this is what
 will differ depending on your smart meter installation.
 
-1. Feed-in path
-This is the simplest setup. With the smart meter in the feed-in path (next to your main electricity
-meter) it already knows what you are consuming and producing. But it counts the accumulative values.
-And we need daily vaules, in kWh, to match the sensor.fronius_day_energy.
+1. **Feed-in path.** This is the simplest setup. With the smart meter in the feed-in path (next to your main
+electricity meter) it already knows what you are consuming and producing. But it counts the accumulative
+values. And we need daily vaules, in kWh, to match the sensor.fronius_day_energy.
 
 Create the two sensors for daily consumption and production.
 Note: if smart meter energy sensors are not in kWh you need to convert those two to kWh using template sensors.
@@ -151,12 +150,11 @@ utility_meter:
     cycle: daily
 ```
 
-2. Consumption path
-With the smart meter in the consumption path (between the inverter and your consumers) it cannot
-know how much you are consuming or producing from/to the grid. So the only sensor that will have
-a value is the sensor.fronius_smartmeter_energy_ac_consumed. But it will not show what is consumed
-from the grid. It will show how much your house has consumed. So we need to create sensors that will
-give us what the Power Wheel needs.
+2. **Consumption path.** With the smart meter in the consumption path (between the inverter and your consumers)
+it cannot know how much you are consuming or producing from/to the grid. So the only sensor that will have
+a value is the sensor.fronius_smartmeter_energy_ac_consumed. But it will not show what is consumed from the
+grid. It will show how much your house has consumed. So we need to create sensors that will give us what
+the Power Wheel needs.
 ```yaml
 utility_meter:
   # convert consumed energy to daily energy (this is what the house consumes)
