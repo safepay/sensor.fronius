@@ -8,7 +8,7 @@ This component simplifies the integration of a Fronius inverter and optional Pow
 * creates up to 22 individual sensors for easy display or use in automations
 * converts Wh to kWh
 * rounds values to 2 decimal places
-* converts daily, yearly and total energy data to kWh or MWh (user-configurable)
+* converts yearly and total energy data to kWh or MWh (user-configurable)
 * optionally sums values if you have more than one inverter
 
 If you have a SmartMeter installed this component:
@@ -88,6 +88,7 @@ variable | required | type | default | description
 -------- | -------- | ---- | ------- | -----------
 ``ip_address`` | yes | string | | The local IP address of your Fronius Inverter.
 ``name`` | no | string | ``Fronius`` | The preferred name of your Fronius Inverter.
+``scan_interval`` | no | string | 60 | The interval to query the Fronius Inverter for data.
 ``powerflow`` | no | boolean | ``False`` | Set to ``True`` if you have a PowerFlow meter (SmartMeter) to add ``grid_usage``, ``house_load``, ``panel_status``, ``rel_autonomy`` and ``rel_selfconsumption`` sensors.
 ``smartmeter`` | no | boolean | ``False`` | Set to ``True`` if you have a SmartMeter to add ``smartmeter_current_ac_phase_one``, ``smartmeter_current_ac_phase_two``, ``smartmeter_current_ac_phase_three``, ``smartmeter_voltage_ac_phase_one``, ``smartmeter_voltage_ac_phase_two``, ``smartmeter_voltage_ac_phase_three``, ``smartmeter_energy_ac_consumed`` and ``smartmeter_energy_ac_sold`` sensors.
 ``smartmeter_device_id`` | no | string | ``0`` | The Device ID of your Fronius SmartMeter.
@@ -102,18 +103,90 @@ variable | required | type | default | description
 
 Follow the instructions for installation on [Github](https://github.com/gurbyz/power-wheel-card/tree/master)
 
-Add the following to the top of your Lovelace config in the Raw Config Editor:
+Add the following to the Lovelace resource config in the Raw Config Editor:
 ```yaml
 resources:
   - type: module
     url: /local/custom_ui/power-wheel-card.js?v=1
 ```
-Then add and configure a basic custom  card:
+Then add and configure a basic custom card for displaying the power view:
 ```yaml
 type: 'custom:power-wheel-card'
 title: Solar Power
 production_is_positive: false
 solar_power_entity: sensor.fronius_panel_status
 grid_power_entity: sensor.fronius_grid_usage
-home_energy_entity: sensor.fronius_house_load
+```
+
+If you also want to have an energy view in the Power Wheel you need three more sensors. And these sensors
+will be different depending on if your smart meter is installed in the feed-in-path or consumption-path.
+
+This is the configuration you need to add to your Power Wheel config in Lovelace. This will be the same
+regardless of where your smart meter is installed.
+```yaml
+solar_energy_entity: sensor.fronius_day_energy
+grid_energy_consumption_entity: sensor.grid_consumed_energy_day
+grid_energy_production_entity: sensor.grid_sold_energy_day
+```
+
+Next you need to create two new sensors for grid energy consumption and production. And this is what
+will differ depending on your smart meter installation.
+
+1. **Feed-in path.** This is the simplest setup. With the smart meter in the feed-in path (next to your main
+electricity meter) it already knows what you are consuming and producing. But it counts the accumulative
+values. And we need daily vaules, in kWh, to match the sensor.fronius_day_energy.
+
+Create the two sensors for daily consumption and production.
+Note: if smart meter energy sensors are not in kWh you need to convert those two to kWh using template sensors.
+```yaml
+utility_meter:
+  # calculate daily energy consumed from grid (input must be in kWh)
+  grid_consumed_energy_day:
+    source: sensor.fronius_smartmeter_energy_ac_consumed
+    cycle: daily
+  # calculate daily energy sold to grid (input must be in kWh)
+  grid_sold_energy_day:
+    source: sensor.fronius_smartmeter_energy_ac_sold
+    cycle: daily
+```
+
+2. **Consumption path.** With the smart meter in the consumption path (between the inverter and your consumers)
+it cannot know how much you are consuming or producing from/to the grid. So the only sensor that will have
+a value is the sensor.fronius_smartmeter_energy_ac_consumed. But it will not show what is consumed from the
+grid. It will show how much your house has consumed. So we need to create sensors that will give us what
+the Power Wheel needs.
+```yaml
+utility_meter:
+  # convert consumed energy to daily energy (this is what the house consumes)
+  house_energy_day:
+    source: sensor.fronius_smartmeter_energy_ac_consumed
+    cycle: daily
+```
+```yaml
+sensor:
+  - platform: template
+    sensors:
+      # calculate grid energy (negative will be to grid, positive from grid)
+      grid_energy_day:
+        friendly_name: 'Grid energy'
+        unit_of_measurement: 'kWh'
+        value_template: '{{ (states("sensor.fronius_day_energy") | float - states("sensor.house_energy_day") | float) * -1 }}'
+      # calculate energy consumed from grid
+      grid_consumed_energy_day:
+        unit_of_measurement: 'kWh'
+        value_template: >
+          {% if states("sensor.grid_energy_day") | float > 0 -%}
+            {{ states("sensor.grid_energy_day") | float }}
+          {%- else -%}
+            {{ 0 | float }}
+          {%- endif %}
+      # calculate energy produced to grid
+      grid_sold_energy_day:
+        unit_of_measurement: 'kWh'
+        value_template: >
+          {% if states("sensor.grid_energy_day") | float < 0 -%}
+            {{ states("sensor.grid_energy_day") | float * -1 }}
+          {%- else -%}
+            {{ 0 | float }}
+          {%- endif %}
 ```

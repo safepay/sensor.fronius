@@ -5,14 +5,16 @@ from datetime import timedelta
 import requests
 import voluptuous as vol
 import json
+import aiohttp
 
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
-    CONF_MONITORED_CONDITIONS, CONF_NAME, ATTR_ATTRIBUTION, SUN_EVENT_SUNRISE, SUN_EVENT_SUNSET
+    CONF_MONITORED_CONDITIONS, CONF_NAME, CONF_SCAN_INTERVAL, ATTR_ATTRIBUTION, SUN_EVENT_SUNRISE, SUN_EVENT_SUNSET
     )
+from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.entity import Entity
-from homeassistant.util import Throttle
 from homeassistant.util.dt import utcnow as dt_utcnow, as_local
 from homeassistant.helpers.sun import get_astral_event_date
 
@@ -35,11 +37,11 @@ CONF_POWERFLOW = 'powerflow'
 CONF_SMARTMETER = 'smartmeter'
 CONF_SMARTMETER_DEVICE_ID = 'smartmeter_device_id'
 
+DEFAULT_SCAN_INTERVAL = timedelta(seconds=60)
+
 SCOPE_TYPES = ['Device', 'System']
 UNIT_TYPES = ['Wh', 'kWh', 'MWh']
 POWER_UNIT_TYPES = ['W', 'kW', 'MW']
-
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
 
 # Key: ['device', 'system', 'json_key', 'name', 'unit', 'convert_units', 'icon']
 SENSOR_TYPES = {
@@ -87,6 +89,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the Fronius inverter sensor."""
 
+    session = async_get_clientsession(hass)
     ip_address = config[CONF_IP_ADDRESS]
     device_id = config.get(CONF_DEVICE_ID)
     scope = config.get(CONF_SCOPE)
@@ -96,31 +99,27 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     powerflow = config.get(CONF_POWERFLOW)
     smartmeter = config.get(CONF_SMARTMETER)
     smartmeter_device_id = config.get(CONF_SMARTMETER_DEVICE_ID)
+    scan_interval = config.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
 
-    inverter_data = InverterData(ip_address, device_id, scope)
-
-    try:
-        await inverter_data.async_update()
-    except ValueError as err:
-        _LOGGER.error("Received data error from Fronius inverter: %s", err)
-        return
-
+    fetchers = []
+    inverter_data = InverterData(session, ip_address, device_id, scope)
+    fetchers.append(inverter_data)
     if powerflow:
-        powerflow_data = PowerflowData(ip_address)
-        try:
-            await powerflow_data.async_update()
-        except ValueError as err:
-            _LOGGER.error("Received data error from Fronius Powerflow: %s", err)
-            return
-    
+        powerflow_data = PowerflowData(session, ip_address, None, None)
+        fetchers.append(powerflow_data)
     if smartmeter:
-        smartmeter_data = SmartMeterData(ip_address, smartmeter_device_id)
-        try:
-            await smartmeter_data.async_update()
-        except ValueError as err:
-            _LOGGER.error("Received data error from Fronius SmartMeter: %s", err)
-            return
+        smartmeter_data = SmartMeterData(session, ip_address, smartmeter_device_id, "Device")
+        fetchers.append(smartmeter_data)
 
+    def fetch_executor(fetcher):
+        async def fetch_data(*_):
+            await fetcher.async_update()
+        return fetch_data
+    
+    for fetcher in fetchers:
+        fetch = fetch_executor(fetcher)
+        await fetch()
+        async_track_time_interval(hass, fetch, scan_interval)
 
     dev = []
     for variable in config[CONF_MONITORED_CONDITIONS]:
@@ -220,14 +219,13 @@ class FroniusSensor(Entity):
         """Icon to use in the frontend, if any."""
         return self._icon
 
+    @property
+    def should_poll(self):
+        """Device should not be polled, returns False."""
+        return False
+
     async def async_update(self, utcnow=None):
         """Get the latest data from inverter and update the states."""
-
-        # Prevent errors when data not present at night but retain long term states
-        await self._data.async_update()
-        if not self._data:
-            _LOGGER.error("Didn't receive data from the inverter")
-            return
 
         state = None
         if self._data.latest_data and (self._json_key in self._data.latest_data):
@@ -285,6 +283,14 @@ class FroniusSensor(Entity):
             _LOGGER.debug("Latest data: {}".format(self._data.latest_data))
         _LOGGER.debug("State converted ({})".format(self._state))
 
+    async def async_added_to_hass(self):
+        """Register at data provider for updates."""
+        await self._data.register(self)
+
+    def __hash__(self):
+        """Hash sensor by hashing its name."""
+        return hash(self.name)
+
     def find_start_time(self, now):
         """Return sunrise or start_time if given."""
         sunrise = get_astral_event_date(self.hass, SUN_EVENT_SUNRISE, now.date())
@@ -295,14 +301,59 @@ class FroniusSensor(Entity):
         sunset = get_astral_event_date(self.hass, SUN_EVENT_SUNSET, now.date())
         return sunset
 
-class InverterData:
-    """Handle Fronius API object and limit updates."""
+class FroniusFetcher:
+    """Handle Fronius API requests."""
 
-    def __init__(self, ip_address, device_id, scope):
+    def __init__(self, session, ip_address, device_id, scope):
         """Initialize the data object."""
+        self._session = session
         self._ip_address = ip_address
         self._device_id = device_id
         self._scope = scope
+        self._data = None
+        self._sensors = set()
+
+    async def async_update(self):
+        """Retrieve and update latest state."""
+        try:
+            await self._update()
+        except aiohttp.ClientConnectionError:
+            _LOGGER.error("Failed to update: connection error")
+        except asyncio.TimeoutError:
+            _LOGGER.error("Failed to update: request timeout")
+        except ValueError:
+            _LOGGER.error("Failed to update: invalid response received")
+
+        # Schedule an update for all included sensors
+        for sensor in self._sensors:
+            sensor.async_schedule_update_ha_state(True)
+    
+    async def fetch_data(self, url):
+        """Retrieve data from inverter in async manner."""
+        _LOGGER.debug("Requesting data from URL: %s", url)
+        try:
+            response = await self._session.get(url, timeout=10)
+            if response.status != 200:
+                raise ValueError
+            json_response = await response.json()
+            _LOGGER.debug("Got data from URL: %s\n%s", url, json_response)
+            return json_response
+        except aiohttp.ClientResponseError:
+            raise ValueError
+
+    @property
+    def latest_data(self):
+        """Return the latest data object."""
+        if self._data:
+            return self._data
+        return None
+
+    async def register(self, sensor):
+        """Register child sensor for update subscriptions."""
+        self._sensors.add(sensor)
+
+class InverterData(FroniusFetcher):
+    """Handle Fronius API object and limit updates."""
 
     def _build_url(self):
         """Build the URL for the requests."""
@@ -310,30 +361,13 @@ class InverterData:
         _LOGGER.debug("Fronius Inverter URL: %s", url)
         return url
 
-    @property
-    def latest_data(self):
-        """Return the latest data object."""
-        if self._data:
-            return self._data
-        return None
-
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    async def async_update(self):
+    async def _update(self):
         """Get the latest data from inverter."""
         _LOGGER.debug("Requesting inverter data")
-        try:
-            result = requests.get(self._build_url(), timeout=10).json()
-            self._data = result['Body']['Data']
-        except (requests.exceptions.RequestException) as error:
-            _LOGGER.error("Unable to connect to Fronius: %s", error)
-            self._data = None
+        self._data = (await self.fetch_data(self._build_url()))['Body']['Data']
 
-class PowerflowData:
+class PowerflowData(FroniusFetcher):
     """Handle Fronius API object and limit updates."""
-
-    def __init__(self, ip_address):
-        """Initialize the data object."""
-        self._ip_address = ip_address
 
     def _build_url(self):
         """Build the URL for the requests."""
@@ -341,32 +375,13 @@ class PowerflowData:
         _LOGGER.debug("Fronius Powerflow URL: %s", url)
         return url
 
-    @property
-    def latest_data(self):
-        """Return the latest data object."""
-        if self._data:
-            return self._data
-        return None
-
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    async def async_update(self):
+    async def _update(self):
         """Get the latest data from inverter."""
         _LOGGER.debug("Requesting powerflow data")
-        try:
-            result = requests.get(self._build_url(), timeout=10).json()
-            self._data = result['Body']['Data']['Site']
-        except (requests.exceptions.RequestException) as error:
-            _LOGGER.error("Unable to connect to Powerflow: %s", error)
-            self._data = None
+        self._data = (await self.fetch_data(self._build_url()))['Body']['Data']['Site']
 
-class SmartMeterData:
+class SmartMeterData(FroniusFetcher):
     """Handle Fronius API object and limit updates."""
-
-    def __init__(self, ip_address, device_id):
-        """Initialize the data object."""
-        self._ip_address = ip_address
-        self._device_id = device_id
-        self._scope = 'Device'
 
     def _build_url(self):
         """Build the URL for the requests."""
@@ -374,20 +389,7 @@ class SmartMeterData:
         _LOGGER.debug("Fronius SmartMeter URL: %s", url)
         return url
 
-    @property
-    def latest_data(self):
-        """Return the latest data object."""
-        if self._data:
-            return self._data
-        return None
-
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    async def async_update(self):
+    async def _update(self):
         """Get the latest data from inverter."""
         _LOGGER.debug("Requesting smartmeter data")
-        try:
-            result = requests.get(self._build_url(), timeout=10).json()
-            self._data = result['Body']['Data']
-        except (requests.exceptions.RequestException) as error:
-            _LOGGER.error("Unable to connect to Meter: %s", error)
-            self._data = None
+        self._data = (await self.fetch_data(self._build_url()))['Body']['Data']
