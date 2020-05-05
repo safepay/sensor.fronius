@@ -319,6 +319,8 @@ class FroniusFetcher:
             await self._update()
         except aiohttp.ClientConnectionError:
             _LOGGER.error("Failed to update: connection error")
+        except asyncio.TimeoutError:
+            _LOGGER.error("Failed to update: request timeout")
         except ValueError:
             _LOGGER.error("Failed to update: invalid response received")
 
