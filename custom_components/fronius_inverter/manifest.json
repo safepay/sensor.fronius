@@ -4,6 +4,6 @@
   "documentation": "https://github.com/safepay/sensor.fronius/blob/master/README.md",
   "dependencies": [],
   "codeowners": ["@safepay"],
-  "requirements": []
+  "requirements": [],
   "version": "v0.9.3"
 }
