@@ -1,8 +1,5 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs) [![fronius](https://img.shields.io/github/release/safepay/sensor.fronius.svg)](https://github.com/safepay/sensor.fronius) ![Maintenance](https://img.shields.io/maintenance/no/2020.svg)
 
-[![Buy me a beer!](https://img.shields.io/badge/Buy%20me%20a%20beer!-%F0%9F%8D%BA-yellow.svg)](https://www.buymeacoffee.com/7PcGoSkb6)
-
-
 # Fronius Sensor for Home Assistant
 This component simplifies the integration of a Fronius inverter and optional PowerFlow/SmartMeter:
 * creates up to 22 individual sensors for easy display or use in automations
