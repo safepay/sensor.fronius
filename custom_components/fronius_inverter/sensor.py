@@ -11,7 +11,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.sensor import PLATFORM_SCHEMA
 from homeassistant.const import (
-    CONF_MONITORED_CONDITIONS, CONF_NAME, CONF_SCAN_INTERVAL, ATTR_ATTRIBUTION, SUN_EVENT_SUNRISE, SUN_EVENT_SUNSET, STATE_UNAVAILABLE
+    CONF_MONITORED_CONDITIONS, CONF_NAME, CONF_SCAN_INTERVAL, ATTR_ATTRIBUTION, SUN_EVENT_SUNRISE, SUN_EVENT_SUNSET
     )
 from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.entity import Entity
@@ -229,10 +229,6 @@ class FroniusSensor(Entity):
 
     async def async_update(self, utcnow=None):
         """Get the latest data from inverter and update the states."""
-        if not self.available:
-            self._state = STATE_UNAVAILABLE
-            return
-
         state = None
         if self._data.latest_data and (self._json_key in self._data.latest_data):
             _LOGGER.debug("Device: {}".format(self._device))
