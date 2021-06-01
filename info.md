@@ -8,7 +8,7 @@ This component simplifies the integration of a Fronius inverter and optional Sma
 * converts yearly and total energy data to kWh or MWh (user-configurable)
 * optionally connects to your smart meter (PowerFlow) device for 3 additional sensors
 * optionally sums values if you have more than one inverter
-* pauses from sunset to sunrise to handle inverter logging going offline at night
+* optionally pauses from sunset to sunrise to handle inverter logging going offline at night (always_log: false)
 
 ### Minimal Configuration
 ```
