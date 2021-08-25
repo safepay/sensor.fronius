@@ -12,8 +12,14 @@ If you have a SmartMeter installed this component:
 * optionally connects to PowerFlow API for 5 additional sensors
 * optionally connects to SmartMeter API for 8 additional sensors
 * optionally converts PowerFlow units to W, kW or MW
-
 * compatible with the custom [Power Wheel Card](https://github.com/gurbyz/power-wheel-card/tree/master) if using PowerFlow
+
+### Energy dashboard support - HA 2021.8+
+All energy sensors now provide required attributes to allow them to be used in the new Energy dashboard introduced in Home Assistant 2021.8. It is however important to use sensors that are not reset on a regular basis therefore the following "lifetime" sensors should be used:
+
+* Solar production: ``total_energy``
+* Grid consumption: ``smartmeter_energy_ac_consumed``
+* Grid feed-in: ``smartmeter_energy_ac_sold``
 
 ### URL's Utilised
 The Default URL called is ``http://ip_address/GetInverterRealtimeData.cgi?Scope=Device&DeviceId=1&DataCollection=CommonInverterData``
