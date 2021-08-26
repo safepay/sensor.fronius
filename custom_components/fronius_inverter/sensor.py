@@ -12,7 +12,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 
 from homeassistant.const import (
-    CONF_MONITORED_CONDITIONS, CONF_NAME, CONF_SCAN_INTERVAL, ATTR_ATTRIBUTION, SUN_EVENT_SUNRISE, SUN_EVENT_SUNSET, STATE_UNAVAILABLE, DEVICE_CLASS_ENERGY, ENERGY_KILO_WATT_HOUR
+    CONF_MONITORED_CONDITIONS, CONF_NAME, CONF_SCAN_INTERVAL, ATTR_ATTRIBUTION, SUN_EVENT_SUNRISE, SUN_EVENT_SUNSET, STATE_UNAVAILABLE, DEVICE_CLASS_ENERGY, ENERGY_KILO_WATT_HOUR, ENERGY_WATT_HOUR, DEVICE_CLASS_POWER, POWER_KILO_WATT, POWER_WATT, DEVICE_CLASS_CURRENT, DEVICE_CLASS_VOLTAGE
 )
 
 from homeassistant.components.sensor import (
@@ -56,7 +56,7 @@ SENSOR_TYPES = {
     'year_energy': ['inverter', True, 'YEAR_ENERGY', 'Year Energy', 'MWh', 'energy', 'mdi:solar-power'],
     'total_energy': ['inverter', True, 'TOTAL_ENERGY', 'Total Energy', 'MWh', 'energy', 'mdi:solar-power'],
     'ac_power': ['inverter', True, 'PAC', 'AC Power', 'W', 'power', 'mdi:solar-power'],
-    'day_energy': ['inverter', True, 'DAY_ENERGY', 'Day Energy', 'kWh', False, 'mdi:solar-power'],
+    'day_energy': ['inverter', True, 'DAY_ENERGY', 'Day Energy', 'kWh', 'energy', 'mdi:solar-power'],
     'ac_current': ['inverter', False, 'IAC', 'AC Current', 'A', False, 'mdi:solar-power'],
     'ac_voltage': ['inverter', False, 'UAC', 'AC Voltage', 'V', False, 'mdi:solar-power'],
     'ac_frequency': ['inverter', False, 'FAC', 'AC Frequency', 'Hz', False, 'mdi:solar-power'],
@@ -183,11 +183,17 @@ class FroniusSensor(SensorEntity):
         self._smartmeter = smartmeter
         self._always_log = always_log
 
-        # Add attributes to energy sensors to support new Energy dashboard in HA 2021.8
-        if self._units == ENERGY_KILO_WATT_HOUR:
+        # add device class and state class attributes to energy and power sensors to support long term statistics
+        # and energy dashboard, new in HA 2021.8. Ref https://developers.home-assistant.io/docs/core/entity/sensor/
+        if self._convert_units == "power":
+            self._attr_device_class = DEVICE_CLASS_POWER
             self._attr_state_class = STATE_CLASS_MEASUREMENT
+        elif self._convert_units == "energy":
             self._attr_device_class = DEVICE_CLASS_ENERGY
+            self._attr_state_class = STATE_CLASS_MEASUREMENT
             self._attr_last_reset = dt_util.utc_from_timestamp(0)
+            # TODO: When HA 2021.9 is released (or at least before HA 2021.11) the two lines above should be replaced by the line below
+            #self._attr_state_class = STATE_CLASS_TOTAL_INCREASING
 
     @property
     def name(self):

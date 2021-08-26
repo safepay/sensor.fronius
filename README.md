@@ -15,7 +15,7 @@ If you have a SmartMeter installed this component:
 * compatible with the custom [Power Wheel Card](https://github.com/gurbyz/power-wheel-card/tree/master) if using PowerFlow
 
 ### Energy dashboard support - HA 2021.8+
-All energy sensors now provide required attributes to allow them to be used in the new Energy dashboard introduced in Home Assistant 2021.8. It is however important to use sensors that are not reset on a regular basis therefore the following "lifetime" sensors should be used:
+All energy and power sensors provide required attributes to allow long term statistics to be recorded which enables support for the new Energy dashboard introduced in HA 2021.8. The following "lifetime" sensors can be added to the energy configuration:
 
 * Solar production: ``total_energy``
 * Grid consumption: ``smartmeter_energy_ac_consumed``
