@@ -25,10 +25,10 @@ from homeassistant.util.dt import utcnow as dt_utcnow, as_local
 from homeassistant.util import dt as dt_util
 from homeassistant.helpers.sun import get_astral_event_date
 
-_INVERTERRT = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
+_INVERTERRT_URL = 'http://{}/solar_api/v1/GetInverterRealtimeData.cgi?Scope={}&DeviceId={}&DataCollection=CommonInverterData'
 _POWERFLOW_URL = 'http://{}/solar_api/v1/GetPowerFlowRealtimeData.fcgi'
 _METER_URL = 'http://{}/solar_api/v1/GetMeterRealtimeData.cgi?Scope={}&DeviceId={}'
-#_INVERTERRT = 'http://{}{}?DeviceId={}&DataCollection=CommonInverterData'
+#_INVERTERRT_URL = 'http://{}{}?DeviceId={}&DataCollection=CommonInverterData'
 #_POWERFLOW_URL = 'http://{}PowerFlow'
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,6 +36,7 @@ ATTRIBUTION = "Fronius Inverter Data"
 
 CONF_NAME = 'name'
 CONF_IP_ADDRESS = 'ip_address'
+CONF_MODEL = 'model'
 CONF_DEVICE_ID = 'device_id'
 CONF_SCOPE = 'scope'
 CONF_UNITS = 'units'
@@ -50,6 +51,7 @@ DEFAULT_SCAN_INTERVAL = timedelta(seconds=60)
 SCOPE_TYPES = ['Device', 'System']
 UNIT_TYPES = ['Wh', 'kWh', 'MWh']
 POWER_UNIT_TYPES = ['W', 'kW', 'MW']
+MODEL_TYPES = ['symo', 'gen24']
 
 # Key: ['device', 'system', 'json_key', 'name', 'unit', 'convert_units', 'icon']
 SENSOR_TYPES = {
@@ -76,9 +78,22 @@ SENSOR_TYPES = {
     'smartmeter_energy_ac_consumed': ['smartmeter', False, 'EnergyReal_WAC_Sum_Consumed', 'SmartMeter Energy AC Consumed', 'Wh', 'energy', 'mdi:solar-power'],
     'smartmeter_energy_ac_sold': ['smartmeter', False, 'EnergyReal_WAC_Sum_Produced', 'SmartMeter Energy AC Sold', 'Wh', 'energy', 'mdi:solar-power']
 }
+# the gen24 inverter has different names for some sensors
+SENSOR_TYPES_GEN24 = {
+    'smartmeter_current_ac_phase_one': ['smartmeter', False, 'ACBRIDGE_CURRENT_ACTIVE_MEAN_01_F32', 'SmartMeter Current AC Phase 1', 'A', False, 'mdi:solar-power'],
+    'smartmeter_current_ac_phase_two': ['smartmeter', False, 'ACBRIDGE_CURRENT_ACTIVE_MEAN_02_F32', 'SmartMeter Current AC Phase 2', 'A', False, 'mdi:solar-power'],
+    'smartmeter_current_ac_phase_three': ['smartmeter', False, 'ACBRIDGE_CURRENT_ACTIVE_MEAN_03_F32', 'SmartMeter Current AC Phase 3', 'A', False, 'mdi:solar-power'],
+    'smartmeter_voltage_ac_phase_one': ['smartmeter', False, 'SMARTMETER_VOLTAGE_01_F64', 'SmartMeter Voltage AC Phase 1', 'V', False, 'mdi:solar-power'],
+    'smartmeter_voltage_ac_phase_two': ['smartmeter', False, 'SMARTMETER_VOLTAGE_02_F64', 'SmartMeter Voltage AC Phase 2', 'V', False, 'mdi:solar-power'],
+    'smartmeter_voltage_ac_phase_three': ['smartmeter', False, 'SMARTMETER_VOLTAGE_03_F64', 'SmartMeter Voltage AC Phase 3', 'V', False, 'mdi:solar-power'],
+    'smartmeter_energy_ac_consumed': ['smartmeter', False, 'SMARTMETER_ENERGYACTIVE_CONSUMED_SUM_F64', 'SmartMeter Energy AC Consumed', 'Wh', 'energy', 'mdi:solar-power'],
+    'smartmeter_energy_ac_sold': ['smartmeter', False, 'SMARTMETER_ENERGYACTIVE_PRODUCED_SUM_F64', 'SmartMeter Energy AC Sold', 'Wh', 'energy', 'mdi:solar-power']
+}
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_IP_ADDRESS): cv.string,
+    vol.Optional(CONF_MODEL, default="symo"):
+        vol.In(MODEL_TYPES),
     vol.Optional(CONF_DEVICE_ID, default='1'): cv.string,
     vol.Optional(CONF_NAME, default='Fronius'): cv.string,
     vol.Optional(CONF_SCOPE, default='Device'):
@@ -100,6 +115,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
     session = async_get_clientsession(hass)
     ip_address = config[CONF_IP_ADDRESS]
+    model = config[CONF_MODEL]
     device_id = config.get(CONF_DEVICE_ID)
     scope = config.get(CONF_SCOPE)
     units = config.get(CONF_UNITS)
@@ -110,6 +126,14 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     smartmeter_device_id = config.get(CONF_SMARTMETER_DEVICE_ID)
     scan_interval = config.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
     always_log = config.get(CONF_ALWAYS_LOG)
+
+    if model == 'gen24':
+        _LOGGER.debug("GEN24 configured, updating sensor list")
+        # update sensors since gen24 has different names for some of them
+        for variable in SENSOR_TYPES:
+            if variable in SENSOR_TYPES_GEN24:
+                SENSOR_TYPES[variable] = SENSOR_TYPES_GEN24[variable]
+    _LOGGER.debug(SENSOR_TYPES)
 
     fetchers = []
     inverter_data = InverterData(session, ip_address, device_id, scope)
@@ -389,7 +413,7 @@ class InverterData(FroniusFetcher):
 
     def _build_url(self):
         """Build the URL for the requests."""
-        url = _INVERTERRT.format(self._ip_address, self._scope, self._device_id)
+        url = _INVERTERRT_URL.format(self._ip_address, self._scope, self._device_id)
         _LOGGER.debug("Fronius Inverter URL: %s", url)
         return url
 

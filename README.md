@@ -7,6 +7,7 @@ This component simplifies the integration of a Fronius inverter and optional Pow
 * rounds values to 2 decimal places
 * converts yearly and total energy data to kWh or MWh (user-configurable)
 * optionally sums values if you have more than one inverter
+* supports the new Gen24 inverter (some sensors differs from Symo)
 
 If you have a SmartMeter installed this component:
 * optionally connects to PowerFlow API for 5 additional sensors
@@ -91,6 +92,7 @@ variable | required | type | default | description
 -------- | -------- | ---- | ------- | -----------
 ``ip_address`` | yes | string | | The local IP address of your Fronius Inverter.
 ``name`` | no | string | ``Fronius`` | The preferred name of your Fronius Inverter.
+``model`` | no | string | ``symo`` | Type of inverter from ``gen24, symo``
 ``always_log`` | no | boolean | ``True`` | Set to ``False`` if your Fronius Inverter shuts down when the sun goes down.
 ``scan_interval`` | no | string | 60 | The interval to query the Fronius Inverter for data.
 ``powerflow`` | no | boolean | ``False`` | Set to ``True`` if you have a PowerFlow meter (SmartMeter) to add ``grid_usage``, ``house_load``, ``panel_status``, ``rel_autonomy`` and ``rel_selfconsumption`` sensors.
