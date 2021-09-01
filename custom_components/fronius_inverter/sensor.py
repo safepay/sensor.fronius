@@ -16,7 +16,7 @@ from homeassistant.const import (
 )
 
 from homeassistant.components.sensor import (
-    PLATFORM_SCHEMA, STATE_CLASS_MEASUREMENT, SensorEntity,
+    PLATFORM_SCHEMA, STATE_CLASS_MEASUREMENT, STATE_CLASS_TOTAL_INCREASING, SensorEntity,
 )
 
 from homeassistant.helpers.event import async_track_time_interval
@@ -207,17 +207,15 @@ class FroniusSensor(SensorEntity):
         self._smartmeter = smartmeter
         self._always_log = always_log
 
-        # add device class and state class attributes to energy and power sensors to support long term statistics
-        # and energy dashboard, new in HA 2021.8. Ref https://developers.home-assistant.io/docs/core/entity/sensor/
+        # add attributes to support Energy dashboard and statistics for power sensors, new in HA 2021.8
+        # and updated in 2021.9 due to bugs in the orginal HA implementation.
+        # ref https://developers.home-assistant.io/docs/core/entity/sensor/
         if self._convert_units == "power":
             self._attr_device_class = DEVICE_CLASS_POWER
             self._attr_state_class = STATE_CLASS_MEASUREMENT
         elif self._convert_units == "energy":
             self._attr_device_class = DEVICE_CLASS_ENERGY
-            self._attr_state_class = STATE_CLASS_MEASUREMENT
-            self._attr_last_reset = dt_util.utc_from_timestamp(0)
-            # TODO: When HA 2021.9 is released (or at least before HA 2021.11) the two lines above should be replaced by the line below
-            #self._attr_state_class = STATE_CLASS_TOTAL_INCREASING
+            self._attr_state_class = STATE_CLASS_TOTAL_INCREASING
 
     @property
     def name(self):

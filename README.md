@@ -15,8 +15,12 @@ If you have a SmartMeter installed this component:
 * optionally converts PowerFlow units to W, kW or MW
 * compatible with the custom [Power Wheel Card](https://github.com/gurbyz/power-wheel-card/tree/master) if using PowerFlow
 
-### Energy dashboard support - HA 2021.8+
-All energy and power sensors provide required attributes to allow long term statistics to be recorded which enables support for the new Energy dashboard introduced in HA 2021.8. The following "lifetime" sensors can be added to the energy configuration:
+### Energy dashboard support - HA 2021.9
+All energy and power sensors provide required attributes to allow long term statistics to be recorded which enables support for the new Energy dashboard introduced in HA 2021.8.
+
+> **BREAKING CHANGE** HA 2021.9 breaks sensors in release 0.9.6 of this component. To upgrade to HA 2021.9, ensure you update this component to 0.9.7+ immediately afterwards. 0.9.7 is no longer compatible with versions of HA 2021.8 and lower.
+
+The following "lifetime" sensors can be added to the energy configuration:
 
 * Solar production: ``total_energy``
 * Grid consumption: ``smartmeter_energy_ac_consumed``
