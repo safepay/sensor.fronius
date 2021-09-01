@@ -22,6 +22,10 @@ All energy and power sensors provide required attributes to allow long term stat
 * Grid consumption: ``smartmeter_energy_ac_consumed``
 * Grid feed-in: ``smartmeter_energy_ac_sold``
 
+> **_NOTE:_**  The Energy dashboard expects units to be expressed in kWh otherwise they will not be available to add to the configuration. To resolve this, you must include the following in the Fronius component configuration.yaml entry to ensure units are converted appropriately:
+>
+>``units: kWh``
+
 ### URL's Utilised
 The Default URL called is ``http://ip_address/GetInverterRealtimeData.cgi?Scope=Device&DeviceId=1&DataCollection=CommonInverterData``
 
