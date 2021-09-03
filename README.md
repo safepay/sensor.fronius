@@ -15,10 +15,36 @@ If you have a SmartMeter installed this component:
 * optionally converts PowerFlow units to W, kW or MW
 * compatible with the custom [Power Wheel Card](https://github.com/gurbyz/power-wheel-card/tree/master) if using PowerFlow
 
-### Energy dashboard support - HA 2021.9
+### Energy dashboard support - HA 2021.8+
 All energy and power sensors provide required attributes to allow long term statistics to be recorded which enables support for the new Energy dashboard introduced in HA 2021.8.
 
-> **BREAKING CHANGE** HA 2021.9 breaks sensors in release 0.9.6 of this component. To upgrade to HA 2021.9, ensure you update this component to 0.9.7+ immediately afterwards. 0.9.7 is no longer compatible with versions of HA 2021.8 and lower.
+#### BREAKING CHANGE - HA 2021.9.x
+
+Unfortunately HA 2021.9 breaks energy sensors in earlier releases of this component. To upgrade to HA 2021.9.x, ensure you update to this release immediately afterwards. 2021.8.x can be made compatible by using customize.yaml to override the required entities as follows.
+
+If it doesn't already exist, add the following into configuration.yaml:
+```yaml
+homeassistant:
+  customize: !include customize.yaml
+```
+
+If it doesn't already exist, create a "customize.yaml" file in the same directory as configuration.yaml and add the following:
+```yaml
+sensor.fronius_total_energy:
+  state_class: measurement
+  last_reset: "homeassistant.util.dt.utc_from_timestamp(0)"
+sensor.fronius_smartmeter_energy_ac_consumed:
+  state_class: measurement
+  last_reset: "homeassistant.util.dt.utc_from_timestamp(0)"
+sensor.fronius_smartmeter_energy_ac_sold:
+  state_class: measurement
+  last_reset: "homeassistant.util.dt.utc_from_timestamp(0)"
+```
+
+Where "fronius" in the sensor name needs to match the name of the integration. Once upgraded to HA 2021.9.x the above entries may be safely removed.
+
+
+#### Configuring the Energy dashboard:
 
 The following "lifetime" sensors can be added to the energy configuration:
 
