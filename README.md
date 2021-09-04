@@ -31,13 +31,13 @@ homeassistant:
 If it doesn't already exist, create a "customize.yaml" file in the same directory as configuration.yaml and add the following:
 ```yaml
 sensor.fronius_total_energy:
-  state_class: measurement
+  state_class: total_increasing
   last_reset: "homeassistant.util.dt.utc_from_timestamp(0)"
 sensor.fronius_smartmeter_energy_ac_consumed:
-  state_class: measurement
+  state_class: total_increasing
   last_reset: "homeassistant.util.dt.utc_from_timestamp(0)"
 sensor.fronius_smartmeter_energy_ac_sold:
-  state_class: measurement
+  state_class: total_increasing
   last_reset: "homeassistant.util.dt.utc_from_timestamp(0)"
 ```
 
@@ -49,8 +49,8 @@ Where "fronius" in the sensor name needs to match the name of the integration. O
 The following "lifetime" sensors can be added to the energy configuration:
 
 * Solar production: ``total_energy``
-* Grid consumption: ``smartmeter_energy_ac_consumed``
-* Grid feed-in: ``smartmeter_energy_ac_sold``
+* Grid consumption: ``smartmeter_energy_ac_consumed`` (smartmeter required).
+* Grid feed-in: ``smartmeter_energy_ac_sold`` (smartmeter required).
 
 > **_NOTE:_**  The Energy dashboard expects units to be expressed in kWh otherwise they will not be available to add to the configuration. To resolve this, you must include the following in the Fronius component configuration.yaml entry to ensure units are converted appropriately:
 >
@@ -88,6 +88,7 @@ sensor:
 sensor:
   - platform: fronius_inverter
     ip_address: LOCAL_IP_FOR_FRONIUS
+    units: kWh
     monitored_conditions:
       - ac_power
       - day_energy
@@ -101,6 +102,7 @@ sensor:
   - platform: fronius_inverter
     ip_address: LOCAL_IP_FOR_FRONIUS
     scope: System
+    units: kWh
 ```
 
 ```yaml
@@ -109,6 +111,7 @@ sensor:
   - platform: fronius_inverter
     ip_address: LOCAL_IP_FOR_FRONIUS
     powerflow: True
+    units: kWh
     power_units: kW
 ```
 
@@ -130,7 +133,7 @@ variable | required | type | default | description
 ``always_log`` | no | boolean | ``True`` | Set to ``False`` if your Fronius Inverter shuts down when the sun goes down.
 ``scan_interval`` | no | string | 60 | The interval to query the Fronius Inverter for data.
 ``powerflow`` | no | boolean | ``False`` | Set to ``True`` if you have a PowerFlow meter (SmartMeter) to add ``grid_usage``, ``house_load``, ``panel_status``, ``rel_autonomy`` and ``rel_selfconsumption`` sensors.
-``smartmeter`` | no | boolean | ``False`` | Set to ``True`` if you have a SmartMeter to add ``smartmeter_current_ac_phase_one``, ``smartmeter_current_ac_phase_two``, ``smartmeter_current_ac_phase_three``, ``smartmeter_voltage_ac_phase_one``, ``smartmeter_voltage_ac_phase_two``, ``smartmeter_voltage_ac_phase_three``, ``smartmeter_energy_ac_consumed`` and ``smartmeter_energy_ac_sold`` sensors.
+``smartmeter`` | no | boolean | ``False`` | Set to ``True`` if you have a SmartMeter to add ``smartmeter_energy_ac_consumed``,``smartmeter_energy_ac_sold``,``smartmeter_current_ac_phase_one``, ``smartmeter_current_ac_phase_two``, ``smartmeter_current_ac_phase_three``, ``smartmeter_voltage_ac_phase_one``, ``smartmeter_voltage_ac_phase_two``, ``smartmeter_voltage_ac_phase_three``, ``smartmeter_energy_ac_consumed`` and ``smartmeter_energy_ac_sold`` sensors.
 ``smartmeter_device_id`` | no | string | ``0`` | The Device ID of your Fronius SmartMeter.
 ``units`` | no | string | ``MWh`` | The preferred units for Year and Total Energy from ``Wh, kWh, MWh``.
 ``power_units`` | no | string | ``W`` | The preferred PowerFlow units from ``W, kW, MW``.
