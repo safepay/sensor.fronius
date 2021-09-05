@@ -20,7 +20,9 @@ All energy and power sensors provide required attributes to allow long term stat
 
 #### BREAKING CHANGE - HA 2021.9.x
 
-Unfortunately HA 2021.9 breaks energy sensors in earlier releases of this component. To upgrade to HA 2021.9.x, ensure you update to this release immediately afterwards. 2021.8.x can be made compatible by using customize.yaml to override the required entities as follows.
+Unfortunately HA 2021.9 breaks energy sensors in earlier releases of this component. To upgrade to HA 2021.9.x, ensure you update to this release immediately afterwards.
+
+2021.8.x can be made compatible by using customize.yaml to override the required entities as follows. These entries are not required if running 2021.9.x or later.
 
 If it doesn't already exist, add the following into configuration.yaml:
 ```yaml
@@ -32,13 +34,13 @@ If it doesn't already exist, create a "customize.yaml" file in the same director
 ```yaml
 sensor.fronius_total_energy:
   state_class: measurement
-  last_reset: "homeassistant.util.dt.utc_from_timestamp(0)"
+  last_reset: 1970-01-01T00:00:00+00:00
 sensor.fronius_smartmeter_energy_ac_consumed:
   state_class: measurement
-  last_reset: "homeassistant.util.dt.utc_from_timestamp(0)"
+  last_reset: 1970-01-01T00:00:00+00:00
 sensor.fronius_smartmeter_energy_ac_sold:
   state_class: measurement
-  last_reset: "homeassistant.util.dt.utc_from_timestamp(0)"
+  last_reset: 1970-01-01T00:00:00+00:00
 ```
 
 Where "fronius" in the sensor name needs to match the name of the integration. Once upgraded to HA 2021.9.x the above entries may be safely removed.
@@ -49,8 +51,8 @@ Where "fronius" in the sensor name needs to match the name of the integration. O
 The following "lifetime" sensors can be added to the energy configuration:
 
 * Solar production: ``total_energy``
-* Grid consumption: ``smartmeter_energy_ac_consumed``
-* Grid feed-in: ``smartmeter_energy_ac_sold``
+* Grid consumption: ``smartmeter_energy_ac_consumed`` (smartmeter required)
+* Grid feed-in: ``smartmeter_energy_ac_sold`` (smartmeter required)
 
 > **_NOTE:_**  The Energy dashboard expects units to be expressed in kWh otherwise they will not be available to add to the configuration. To resolve this, you must include the following in the Fronius component configuration.yaml entry to ensure units are converted appropriately:
 >
