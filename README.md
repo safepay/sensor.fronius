@@ -15,6 +15,13 @@ If you have a SmartMeter installed this component:
 * optionally converts PowerFlow units to W, kW or MW
 * compatible with the custom [Power Wheel Card](https://github.com/gurbyz/power-wheel-card/tree/master) if using PowerFlow
 
+### Fronius GEN24
+As of FW 0.13.13-1, released late September 2021, the Fronius Gen24 inverter is now compatible with the same API as Fronius Symo inverters. If you are running an older FW it is recommended that you update your inverter.
+
+If you, for some reason, cannot update the inverter FW you can use the configuration option ``model: gen24`` and most of the sensors will work. This was added in v0.9.8 to fix some of the sensors that was broken in the Gen24. But this configuration option may be removed in a future update.
+
+**Note:** The Gen24 inverter does not support the ``day_energy`` and ``year_energy`` sensors.
+
 ### Energy dashboard support - HA 2021.8+
 All energy and power sensors provide required attributes to allow long term statistics to be recorded which enables support for the new Energy dashboard introduced in HA 2021.8.
 
@@ -128,7 +135,7 @@ variable | required | type | default | description
 -------- | -------- | ---- | ------- | -----------
 ``ip_address`` | yes | string | | The local IP address of your Fronius Inverter.
 ``name`` | no | string | ``Fronius`` | The preferred name of your Fronius Inverter.
-``model`` | no | string | ``symo`` | Type of inverter from ``gen24, symo``
+``model`` | no | string | ``symo`` | Type of inverter from ``gen24, symo`` (Deprecated)
 ``always_log`` | no | boolean | ``True`` | Set to ``False`` if your Fronius Inverter shuts down when the sun goes down.
 ``scan_interval`` | no | string | 60 | The interval to query the Fronius Inverter for data.
 ``powerflow`` | no | boolean | ``False`` | Set to ``True`` if you have a PowerFlow meter (SmartMeter) to add ``grid_usage``, ``house_load``, ``panel_status``, ``rel_autonomy`` and ``rel_selfconsumption`` sensors.
