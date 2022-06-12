@@ -65,6 +65,8 @@ The optional PowerFlow URL is ``http://ip_address/solar_api/v1/GetPowerFlowRealt
 
 The optional SmartMeter URL is ``http://ip_address/solar_api/v1/GetMeterRealtimeData.cgi?Scope=Device&DeviceId=1``
 
+The optional Battery URL is ``http://ip_address/solar_api/v1/GetStorageRealtimeData.cgi?Scope=Device&DeviceId=1``
+
 ### Installation
 Copy the ``fronius_inverter`` folder in the custom_components directory into your own custom_components directory in your config directory of Home Assistant.
 
@@ -122,6 +124,14 @@ sensor:
     smartmeter: True
 ```
 
+```yaml
+# Example configuration.yaml entry where you have a Battery device and add Battery sensors:
+sensor:
+  - platform: fronius_inverter
+    ip_address: LOCAL_IP_FOR_FRONIUS
+    battery: True
+```
+
 ### Configuration Variables
 
 variable | required | type | default | description
@@ -131,9 +141,11 @@ variable | required | type | default | description
 ``model`` | no | string | ``symo`` | Type of inverter from ``gen24, symo``
 ``always_log`` | no | boolean | ``True`` | Set to ``False`` if your Fronius Inverter shuts down when the sun goes down.
 ``scan_interval`` | no | string | 60 | The interval to query the Fronius Inverter for data.
-``powerflow`` | no | boolean | ``False`` | Set to ``True`` if you have a PowerFlow meter (SmartMeter) to add ``grid_usage``, ``house_load``, ``panel_status``, ``rel_autonomy`` and ``rel_selfconsumption`` sensors.
+``powerflow`` | no | boolean | ``False`` | Set to ``True`` if you have a PowerFlow meter (SmartMeter) to add ``battery_usage``, ``grid_usage``, ``house_load``, ``panel_status``, ``rel_autonomy`` and ``rel_selfconsumption`` sensors.
 ``smartmeter`` | no | boolean | ``False`` | Set to ``True`` if you have a SmartMeter to add ``smartmeter_current_ac_phase_one``, ``smartmeter_current_ac_phase_two``, ``smartmeter_current_ac_phase_three``, ``smartmeter_voltage_ac_phase_one``, ``smartmeter_voltage_ac_phase_two``, ``smartmeter_voltage_ac_phase_three``, ``smartmeter_energy_ac_consumed`` and ``smartmeter_energy_ac_sold`` sensors.
 ``smartmeter_device_id`` | no | string | ``0`` | The Device ID of your Fronius SmartMeter.
+``battery`` | no | boolean | ``False`` | Set to ``True`` if you have a Battery to add ``battery_designed_capacity``, ``battery_maximum_capacity``, ``battery_charge``, ``battery_temperature``, ``battery_current`` and ``battery_voltage`` sensors.
+``battery_device_id`` | no | string | ``0`` | The Device ID of your Battery.
 ``units`` | no | string | ``MWh`` | The preferred units for Year and Total Energy from ``Wh, kWh, MWh``.
 ``power_units`` | no | string | ``W`` | The preferred PowerFlow units from ``W, kW, MW``.
 ``device_id`` | no | string | ``1`` | The Device ID of your Fronius Inverter.
