@@ -59,7 +59,7 @@ The following "lifetime" sensors can be added to the energy configuration:
 >``units: kWh``
 
 ### URL's Utilised
-The Default URL called is ``http://ip_address/GetInverterRealtimeData.cgi?Scope=Device&DeviceId=1&DataCollection=CommonInverterData``
+The Default URL called is ``http://ip_address/solar_api/v1/GetInverterRealtimeData.cgi?Scope=Device&DeviceId=1&DataCollection=CommonInverterData``
 
 The optional PowerFlow URL is ``http://ip_address/solar_api/v1/GetPowerFlowRealtimeData.fcgi``
 
