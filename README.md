@@ -138,7 +138,7 @@ variable | required | type | default | description
 ``power_units`` | no | string | ``W`` | The preferred PowerFlow units from ``W, kW, MW``.
 ``device_id`` | no | string | ``1`` | The Device ID of your Fronius Inverter.
 ``scope`` | no | string | ``Device`` | Set to ``System`` if you have multiple inverters. This will return ``ac_power, day_energy, year_energy`` and, ``total_energy`` only. Case-sensitive.
-``monitored_conditions`` | no | list | All | List of monitored conditions from: ``ac_power``, ``ac_current``, ``ac_voltage``, ``ac_frequency``, ``dc_current``, ``dc_voltage``, ``day_energy``, ``year_energy``, ``total_energy``, ``grid_usage``, ``house_load``, ``panel_status``, ``rel_autonomy``, ``rel_selfconsumption``, ``smartmeter_current_ac_phase_one``, ``smartmeter_current_ac_phase_two``, ``smartmeter_current_ac_phase_three``, ``smartmeter_voltage_ac_phase_one``, ``smartmeter_voltage_ac_phase_two``, ``smartmeter_voltage_ac_phase_three``, ``smartmeter_energy_ac_consumed``, ``smartmeter_energy_ac_sold``
+``monitored_conditions`` | no | list | All | List of monitored conditions from: ``ac_power``, ``ac_current``, ``ac_voltage``, ``ac_frequency``, ``dc_current``, ``dc_voltage``, ``day_energy``, ``year_energy``, ``total_energy``, ``grid_usage``, ``house_load``, ``panel_status``, ``rel_autonomy``, ``rel_selfconsumption``, ``smartmeter_current_ac_phase_one``, ``smartmeter_current_ac_phase_two``, ``smartmeter_current_ac_phase_three``, ``smartmeter_voltage_ac_phase_one``, ``smartmeter_voltage_ac_phase_two``, ``smartmeter_voltage_ac_phase_three``, ``smartmeter_energy_ac_consumed``, ``smartmeter_energy_ac_sold``, ``smartmeter_powerreal_p_sum``
 
 
 ### Custom Power Wheel Card (if using a Powerflow)

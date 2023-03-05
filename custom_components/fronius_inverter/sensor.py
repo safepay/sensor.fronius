@@ -76,7 +76,8 @@ SENSOR_TYPES = {
     'smartmeter_voltage_ac_phase_two': ['smartmeter', False, 'Voltage_AC_Phase_2', 'SmartMeter Voltage AC Phase 2', 'V', False, 'mdi:solar-power'],
     'smartmeter_voltage_ac_phase_three': ['smartmeter', False, 'Voltage_AC_Phase_3', 'SmartMeter Voltage AC Phase 3', 'V', False, 'mdi:solar-power'],
     'smartmeter_energy_ac_consumed': ['smartmeter', False, 'EnergyReal_WAC_Sum_Consumed', 'SmartMeter Energy AC Consumed', 'Wh', 'energy', 'mdi:solar-power'],
-    'smartmeter_energy_ac_sold': ['smartmeter', False, 'EnergyReal_WAC_Sum_Produced', 'SmartMeter Energy AC Sold', 'Wh', 'energy', 'mdi:solar-power']
+    'smartmeter_energy_ac_sold': ['smartmeter', False, 'EnergyReal_WAC_Sum_Produced', 'SmartMeter Energy AC Sold', 'Wh', 'energy', 'mdi:solar-power'],
+    'smartmeter_powerreal_p_sum': ['smartmeter', False, 'PowerReal_P_Sum', 'SmartMeter PowerReal P Sum', 'W', 'power', 'mdi:solar-power']
 }
 # the gen24 inverter has different names for some sensors
 SENSOR_TYPES_GEN24 = {
